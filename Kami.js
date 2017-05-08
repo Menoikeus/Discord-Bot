@@ -1,135 +1,87 @@
 const Discord = require('discord.js');
 const client = new Discord.Client();
 const config = require('./config.json');
+const fs = require("fs");
 
-// INIT
-var commandPrefix = config.prefix;
-//
+// PATH
+var path = require('path');
+var appDir = path.dirname(require.main.filename);
+
+// SQL
+const db = require(appDir + "/mysql.js");
 
 client.on('ready', () => {
   client.user.setGame("tennis with her friends");
   console.log('I am ready!');
 });
 
-var lastPWarning = null;
-client.on('message', message => {
-	if(message.content.startsWith(commandPrefix))
-	{
-		var currentHour = (new Date()).getHours();
-		var currentMinute = (new Date()).getMinutes();
-			
-		if (message.content === commandPrefix + 'help')
-		{
-			var output = "";
-			  
-			  
-			output += "__**List of commands**__\n\n" + 
-					  "**!ping**\t\t\t\t\t\t  *Pings the bot*\n" + 
-					  "**!roll *[number]***\t\t *Randomly chooses a number from 1 to \'number\', or from 1 to 6 if no number is specified*\n" + 
-					  "**!team *[names]***\t\t*Creates two random teams based on the names*\n";
-					  /*/
-			output += "```List of commands\n\n" + 
-					  "!ping\t\t\t\t\t\tPings the bot\n" + 
-					  "!roll [number]\t\tRandomly chooses a number from 1 to \'number\', or from 1 to 6 if no number is specified\n" + 
-					  "!team [names]\t\tCreates two random teams based on the names\n";*/
-			  
-			message.channel.send(output);	
-		}
-		
-		// PING PONG *************************************
-		if (message.content === commandPrefix + 'ping') {
-			message.channel.send('*pong!*');
-		}
-		
-		// DICE ROLL *************************************
-		if (message.content.includes('roll')) {
-			var info = message.content.split(' ');
-			if(info.length == 1)
-			{
-				message.channel.send('**' + Math.ceil(Math.random() * 6) + '**');
-			}
-			else
-			{
-				message.channel.send('**' + Math.ceil(Math.random() * info[1]) + '**');
-			}
-		}
-		  
-		// TEAM ******************************************
-		if (message.content.includes('team'))
-		{
-			var teamMembers = message.content.split(' ');
-			  
-			var blueMax = Math.ceil((teamMembers.length-1)/2.);
-			var redMax = Math.ceil((teamMembers.length-1)/2.);
-			  
-			var blue = [];
-			var red = [];
-			  
-			for(var i = 1; i < teamMembers.length; i++)
-			{
-				var teamRand = Math.floor(Math.random() * 2);
-				  
-				if(teamRand == 0)
-				{
-					if(blueMax > 0)
-					{
-						blue.push(teamMembers[i]);
-						blueMax--;
-					}
-					else
-					{
-						red.push(teamMembers[i]);
-						redMax--;
-					}
-				}
-				else
-				{
-					if(redMax > 0)
-					{
-						red.push(teamMembers[i]);
-						redMax--;
-					}
-					else
-					{
-						blue.push(teamMembers[i]);
-						blueMax--;
-					}
-				}
-			}
-			  
-			var output = "";
-			  
-			output += "__**Team 1:**__\n";
-			for(var i = 0; i < blue.length; i++)
-			{
-				output += "*" + blue[i] + "*\n";
-			}
-			  
-			output += "\n__**Team 2:**__\n";
-			for(var i = 0; i < red.length; i++)
-			{
-				output += "*" + red[i] + "*\n";
-			}
-			  
-			message.channel.send(output);						
-		}
-	}
-		
-	if (message.content.includes("porn") && message.content.includes("http") && currentHour < 23 && currentHour > 6)
-	{
-		console.log("Detected!");
-		// console.log(typeof lastPWarning + " " + typeof message);
-		if(lastPWarning != null)
-		{
-			lastPWarning.delete();
-		}
-		message.channel.send("Please no pornographic material before 11:00 PM EST").then(sameMessage => {lastPWarning = sameMessage});
-		message.delete();
-	}
+// event handler *********************************************
+fs.readdir(appDir + "/events/", (err, files) => {
+	if(err) return console.error(err);
+
+	files.forEach(file => {
+		let eventFunction = require('./events/' + file);
+		let eventName = file.split(".")[0];
+
+		client.on(eventName, (...args) => eventFunction.run(client, ...args));
+	});
 });
 
-client.on('guildMemberAdd', member => {
-	member.guild.defaultChannel.send('Welcome to the server, ' + member + '!');
+// command handler *******************************************
+var lastPWarning = null;
+client.on('message', message => {
+	if(message.author.bot) return;
+
+	// NONCOMMANDS
+	if (message.content.includes("porn") && message.content.includes("http"))
+	{
+		var currentHour = (new Date()).getHours();
+		if(currentHour <= 23 && currentHour > 6)
+		{
+			console.log("Detected!");
+
+			if(lastPWarning != null)
+			{
+				lastPWarning.delete();
+			}
+			message.channel.send("Please no pornographic material before 12:00 AM EST").then(sameMessage => {lastPWarning = sameMessage});
+			message.delete();
+		}
+	}
+
+	// COMANMDS (BUT FIRST LEVEL UP STUFF)
+	if(!message.content.startsWith(config.prefix))
+  {
+    db.query("UPDATE users SET exp = exp + 1 WHERE userid="+message.member.user.id, function(error) { if(error){console.log(error);}});
+    console.log("EXP!");
+
+    db.query("SELECT * FROM users WHERE userid="+message.member.user.id, function(error, results, fields) {
+      if(error)
+      {console.log(error);}
+  		else if(results[0].exp >= (results[0].level+1) * 5)
+  		{
+        db.query("UPDATE users SET exp = 0 WHERE userid="+message.member.user.id, function(error) { if(error) {console.log(error);}});
+        db.query("UPDATE users SET level = level + 1 WHERE userid="+message.member.user.id, function(error) { if(error) {console.log(error);}});
+      }
+    });
+
+    return;
+  }
+
+	let command = message.content.split(" ")[0];
+	command = command.slice(config.prefix.length);
+
+	let args = message.content.split(" ").slice(1);
+
+	console.log(command);
+
+	try{
+		let commandFile = require('./commands/'+command+'.js');
+		commandFile.run(client, message, args);
+	}catch(err)
+	{
+		console.error(err);
+	}
 });
 
 client.login(config.token);

@@ -1,0 +1,2 @@
+node kami.js
+pause
