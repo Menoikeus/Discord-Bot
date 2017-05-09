@@ -52,15 +52,15 @@ client.on('message', message => {
 	// COMANMDS (BUT FIRST LEVEL UP STUFF)
 	if(!message.content.startsWith(config.prefix))
   {
-    db.query("UPDATE users SET exp = exp + 1 WHERE userid="+message.member.user.id, function(error) { if(error){console.log(error);}});
+    db.query("UPDATE users SET exp = exp + 10 WHERE userid="+message.member.user.id, function(error) { if(error){console.log(error);}});
     console.log("EXP!");
 
     db.query("SELECT * FROM users WHERE userid="+message.member.user.id, function(error, results, fields) {
       if(error)
       {console.log(error);}
-  		else if(results[0].exp >= (results[0].level+1) * 5)
+  		else if(results[0].exp >= (results[0].level+1) * 50)
   		{
-        db.query("UPDATE users SET exp = 0 WHERE userid="+message.member.user.id, function(error) { if(error) {console.log(error);}});
+        db.query("UPDATE users SET exp = exp - (level+1) * 50 WHERE userid="+message.member.user.id, function(error) { if(error) {console.log(error);}});
         db.query("UPDATE users SET level = level + 1 WHERE userid="+message.member.user.id, function(error) { if(error) {console.log(error);}});
       }
     });
