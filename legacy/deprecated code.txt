@@ -1,0 +1,41 @@
+HEREIN LIES THE DEPTHS OF CODING HELL
+YE BE WARNED
+
+/*
+(15 * (name.length-12))/
+                                        (2+(name.length-12)) -
+                                        textPlacard.bitmap.height/2*/
+
+              //15 is half
+                                                      // so what we're doing here is having a function of the form
+                                                      // (kx)/(2+x), where k is the max value
+                                                      // were trying to make an offset, which increases smaller and smaller
+                                                      // depending on the length of the string
+                                                      // in order to center it vertically, we subtract half of the height
+
+//fake placard (for text opacity)
+            //var textPlacard = new Jimp(500, 225, function (err,image) { if(err) throw err; });
+
+
+            /*let lOutput = "" + results[0].level;
+            let eOutput = "EXP: " + results[0].exp;
+            textPlacard.print(font, 375, 110, lOutput);
+            // textPlacard.print(font, 158, 150, eOutput);
+            textPlacard.opacity(.4);*/
+
+  /*var avatar = new Jimp.read(message.member.user.avatarURL, function (err,im) {
+      if (err) throw err;
+    });
+    placard.resize(85, 85);
+    avatar.resize(85, 85);
+
+    placard.blit(avatar, 60,59);*/
+
+
+    /*
+    message.channel.send({
+      file: image
+    });*/
+    /*message.channel.send("This is your placard!", {
+      g
+    });*/

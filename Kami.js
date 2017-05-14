@@ -13,6 +13,38 @@ const db = require(appDir + "/mysql.js");
 client.on('ready', () => {
   client.user.setGame("tennis with her friends");
   console.log('I am ready!');
+
+  // ADDING ANY UNADDED GUILD members
+  client.guilds.forEach(function(guild) {
+    guild.members.forEach(function(member) {
+      console.log("Trying to insert player " + member.user.username);
+      var info = {
+        "username"	: member.user.username,
+        "userid"		: member.user.id,
+    		"level"			: 0,
+    		"exp"				: 0
+      }
+
+    	db.query("SELECT * FROM users WHERE userid="+member.user.id, function(error, results, fields) {
+        if(error)
+        {
+          console.log(error);
+        }
+    		else if(results.length == 0)
+    		{
+    			db.query("INSERT INTO users SET ?", info, function(error) {
+    				if(error)
+    				{
+    					console.log(error);
+    				}
+    			});
+    		}
+    		else {
+    			console.log("Already there! ID: " + member.user.id + " " + results[0]);
+    		}
+      });
+    });
+  });
 });
 
 // event handler *********************************************

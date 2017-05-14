@@ -27,6 +27,15 @@ function wordPicW(word, size, font, color)
   textBox.print(font, 0, 0, word);
   textBox.autocrop();
   textBox.resize(size, Jimp.AUTO);
+  if(color !== undefined)
+  {
+    var rgbaColor = Jimp.intToRGBA(parseInt(color+"FF"));
+    textBox.color([
+    { apply: 'red', params: [ rgbaColor.r ] },
+    { apply: 'green', params: [ rgbaColor.g ] },
+    { apply: 'blue', params: [ rgbaColor.b ] }
+    ]);
+  }
   return textBox;
 }
 
@@ -51,7 +60,7 @@ exports.run = (client, message, args) => {
 
         var bgPath;
         if(results[0].bgimage == null) {
-          bgPath = './profile/placard_default_bg.png/';
+          bgPath = appDir + '/profile/placard_default_bg.png/';
         }
         else {
           bgPath = results[0].bgimage;
@@ -63,12 +72,21 @@ exports.run = (client, message, args) => {
           bgImage.composite(placard,0,0);
           placard = bgImage;
 
-          Jimp.read(message.member.user.avatarURL, function (err,avatar) {
-            if (err) throw err;
+          var avatarPath;
+          if(message.member.user.avatarURL == null)
+          {
+            avatarPath = appDir + '/profile/avatar_default.png/';
+          }
+          else {
+            avatarPath = message.member.user.avatarURL;
+          }
+
+          Jimp.read(avatarPath, function (err,avatar) {
+            if(err) throw err;
 
             // actual code
             avatar.resize(85, 85);
-            placard.composite(avatar, 60,59);
+            placard.composite(avatar,59,58);
 
             Jimp.loadFont(appDir + "/profile/fonts/font.fnt").then(function(font) {
               var textPlacard = new Jimp(500, 225, function (err,image) { if(err) throw err; });
@@ -99,7 +117,7 @@ exports.run = (client, message, args) => {
 
               console.log(message.member.highestRole.name);
               console.log("0x" + message.member.highestRole.hexColor.slice(1));
-              roleText = wordPic(message.member.highestRole.name,25,font,"0x" + message.member.highestRole.hexColor.slice(1).toUpperCase());
+              roleText = wordPicW(message.member.highestRole.name,85,font,"0x" + message.member.highestRole.hexColor.slice(1).toUpperCase());
               textPlacard.composite(roleText,158,115);
 
               textPlacard.opacity(.7);
