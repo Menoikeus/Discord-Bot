@@ -1,0 +1,8 @@
+**__Changelog:__**
+
+**17 May 2017**
+  *-Added antispam measure to !profile*
+  *-Fixed problem with text box size for placard*
+  *-Added ranked team generation*
+  *-Began storing profile background image as file instead of url*
+  *-Added capability for roll to have variable left bound*
