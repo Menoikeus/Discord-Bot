@@ -1,5 +1,9 @@
 **__Changelog:__**
 
+
+**18 May 2017**
+  *-Added a playing status schedule*
+
 **17 May 2017**
   *-Added antispam measure to !profile*
   *-Fixed problem with text box size for placard*

@@ -2,6 +2,7 @@ const Discord = require('discord.js');    // discord js api
 const client = new Discord.Client();      // discord client
 const config = require('./config.json');  // config json (for security)
 const fs = require("fs");                 // ???
+const schedule = require('node-schedule');
 
 // PATH
 var path = require('path');               // so we can get absolute path
@@ -47,6 +48,114 @@ client.on('ready', () => {
       });
     });
   });
+});
+
+// time scheduler
+
+// weekend
+schedule.scheduleJob('* * 10 * * 6-7', function(){
+ client.user.setGame("some piano to relax");
+});
+schedule.scheduleJob('* * 12 * * 6-7', function(){
+ client.user.setGame("video games with her friends");
+});
+
+// school
+schedule.scheduleJob('* * 7 * * 1-5', function(){
+ client.user.setGame("with her cat before school");
+});
+schedule.scheduleJob('* * 8 * * 1-5', function(){
+ client.user.setGame("music while she does her homework");
+});
+schedule.scheduleJob('* * 9 * * 1-5', function(){
+ client.user.setGame("piano during jazz combo");
+});
+schedule.scheduleJob('* * 10 * * 1-5', function(){
+ client.user.setGame("with her hair in Spanish class");
+});
+schedule.scheduleJob('* * 11 * * 1-5', function(){
+ client.user.setGame("Set during in programming class");
+});
+schedule.scheduleJob('* * 12 * * 1-5', function(){
+ client.user.setGame("with her food at lunch");
+});
+schedule.scheduleJob('* * 13 * * 1-5', function(){
+ client.user.setGame("with her calculator during chemistry");
+});
+schedule.scheduleJob('* * 14 * * 1-2,4-5', function(){
+ client.user.setGame("with pulleys during physics");
+});
+schedule.scheduleJob('* 30 15 * * 1-2,4-5', function(){
+  client.user.setGame("tennis with her friends");
+});
+
+// WEDNESDAY
+schedule.scheduleJob('* * 14 * * 3', function(){
+  var schoolChoice = Math.floor(Math.random() * 4);
+  var schools = ["Belmont Hill", "Governer's", "Milton Academy", "Rivers"];
+
+ client.user.setGame("in a match against " + schools[schoolChoice]);
+});
+
+schedule.scheduleJob('* 30 17 * * *', function(){
+  var foodChoice = Math.floor(Math.random() * 4);
+  var food;
+  switch(foodChoice)
+  {
+    case 0: food = "a hot pocket";
+      break;
+    case 1: food = "pizza";
+      break;
+    case 2: food = "ramen";
+      break;
+    case 3: food = "chicken parmesan";
+      break;
+  }
+  client.user.setGame("a movie while eating " + food);
+});
+schedule.scheduleJob('* 30 18 * * *', function(){
+  var gameChoice = Math.floor(Math.random() * 4);
+  var game;
+  switch(gameChoice)
+  {
+    case 0: game = "Counter-Strike: Global Offensive";
+      break;
+    case 1: game = "League of Legends";
+      break;
+    case 2: game = "PUBG";
+      break;
+    case 3: game = "Melee";
+      break;
+  }
+  client.user.setGame(game + " with a friend");
+});
+
+schedule.scheduleJob('* 30 21 * * 0-4,6', function(){
+  var gameChoice = Math.floor(Math.random() * 5);
+  var game;
+  switch(gameChoice)
+  {
+    case 0: game = "Fire Emblem";
+      break;
+    case 1: game = "Breath of the Wild";
+      break;
+    case 2: game = "Animal Crossing";
+      break;
+    case 3: game = "Pokemon Sun";
+      break;
+    case 4: game = "Mario Kart";
+      break;
+  }
+  client.user.setGame(game + " in her bed");
+});
+
+schedule.scheduleJob('* * 0 * * *', function(){
+  client.user.setGame("some music while she sleeps");
+});
+
+// Friday beer pong!
+schedule.scheduleJob('* 30 21 * * 5', function(){
+  client.user.setGame("beer pong at Cooper's house");
 });
 
 // event handler *********************************************
