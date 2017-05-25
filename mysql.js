@@ -1,10 +1,12 @@
 // SQL
+const config = require('./config_mysql.json');
+
 const mysql = require('mysql');
 var connection = mysql.createConnection({
   host      : "localhost",
-  user      : "Kami",
-  password  : "unknown",
-  database  : "kami_db"
+  user      : config.user,
+  password  : config.password,
+  database  : config.database
 });
 
 connection.connect();
