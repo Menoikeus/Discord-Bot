@@ -228,25 +228,6 @@ client.on('message', message => {
 		}
 	}
 
-	// exp stuff
-  // for leveling up and gaining exp
-	if(!message.content.startsWith(config.prefix))
-  {
-    db.query("UPDATE users SET exp = exp + 10 WHERE userid="+message.member.user.id, function(error) { if(error){console.log(error);}});
-    console.log("EXP!");
-
-    db.query("SELECT * FROM users WHERE userid="+message.member.user.id, function(error, results, fields) {
-      if(error)
-      {console.log(error);}
-  		else if(results[0].exp >= (results[0].level+1) * 50)
-  		{
-        db.query("UPDATE users SET exp = exp - (level+1) * 50 WHERE userid="+message.member.user.id, function(error) { if(error) {console.log(error);}});
-        db.query("UPDATE users SET level = level + 1 WHERE userid="+message.member.user.id, function(error) { if(error) {console.log(error);}});
-      }
-    });
-    return;
-  }
-
   // COMMAND HANDLING
 	let command = message.content.split(" ")[0];
 	command = command.slice(config.prefix.length);   // what command?
