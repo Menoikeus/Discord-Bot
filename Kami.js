@@ -51,6 +51,33 @@ client.on('ready', () => {
 });
 
 // time scheduler
+// level up stuff
+
+schedule.scheduleJob('*/2 * * * *', function(){
+ client.guilds.forEach(function(guild) {
+   //console.log(guild.channels);
+   guild.channels.forEach(function(channel) {
+     if(channel.id != guild.afkChannelID && channel.type == "voice") {
+      channel.members.forEach(function(member) {
+        db.query("UPDATE users SET exp = exp + 1 WHERE userid="+member.user.id, function(error) {
+          if(error){console.log(error);}
+
+          db.query("SELECT * FROM users WHERE userid="+member.user.id, function(error, results, fields) {
+            if(error)
+            {console.log(error);}
+            else if(results[0].exp >= (results[0].level+1) * 50)
+            {
+              db.query("UPDATE users SET exp = exp - (level+1) * 50 WHERE userid="+member.user.id, function(error) { if(error) {console.log(error);}});
+              db.query("UPDATE users SET level = level + 1 WHERE userid="+member.user.id, function(error) { if(error) {console.log(error);}});
+            }
+          });
+        });
+        console.log("EXP!");
+      });
+     }
+   });
+ });
+});
 
 // weekend
 schedule.scheduleJob('* * 10 * * 6-7', function(){
@@ -217,7 +244,6 @@ client.on('message', message => {
         db.query("UPDATE users SET level = level + 1 WHERE userid="+message.member.user.id, function(error) { if(error) {console.log(error);}});
       }
     });
-
     return;
   }
 
