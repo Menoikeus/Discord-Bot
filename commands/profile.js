@@ -160,10 +160,10 @@ exports.run = (client, message, args) => {
                 }
                 message.channel.send({
                   files:  [{ attachment:  buffa}]
-                }).then( mess => { 
-					lastMessage[message.member.user.id] = mess ;
-					message.delete();
-				});
+                }).then( mess => {
+        					lastMessage[message.member.user.id] = mess;
+        					message.delete();
+        				});
               });
             });
           });
