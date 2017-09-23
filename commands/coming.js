@@ -1,106 +1,168 @@
 var path = require('path');
 var appDir = path.dirname(require.main.filename);
 var fs = require('fs');
-const event = require(appDir + "/occasions/occasion_embed.json");
 
-var lastListing;
+var lastListing = {};
+var lastComing;
 exports.run = (client, message, args) => {
   var attendees = [];
   var cants = [];
 
-  fs.readFile(appDir + '/occasions/current_attendees.txt', 'utf8', function(err, read_attendees) {
-  fs.readFile(appDir + '/occasions/current_cants.txt', 'utf8', function(err, read_cants) {
-    if(err) console.log(err);
+  if(fs.existsSync(appDir + "/occasions/"+args[0]+"_occasion.json"))
+	{
+		var event = require(appDir + "/occasions/"+args[0]+"_occasion.json");
 
-    attendees = read_attendees.split("\n");
-    cants = read_cants.split("\n");
-    if(attendees[0].trim().length == 0) {
-      attendees = attendees.slice(1);
-    }
-    if(cants[0].trim().length == 0) {
-      cants = cants.slice(1);
-    }
+    fs.readFile(appDir + '/occasions/attendance/'+args[0]+'_attendees.txt', 'utf8', function(err, read_attendees) {
+    fs.readFile(appDir + '/occasions/attendance/'+args[0]+'_cants.txt', 'utf8', function(err, read_cants) {
+      if(err) console.log(err);
 
-    var stateChange = 1;
-    if (args == "yes") {
-      if(!attendees.includes(message.member.user.username)) {
-        if(!cants.includes(message.member.user.username)) {
-          message.channel.send("Ok, " + message.member.user + ", I'll see you there!");
-        }
-        else {
-          cants.splice(cants.indexOf(message.member.user.username),1);
-          message.channel.send("Oh, " + message.member.user + ", you changed your mind! I'll see you there!");
-        }
-        attendees.push(message.member.user.username);
+      attendees = read_attendees.split("\n");
+      cants = read_cants.split("\n");
+      if(attendees[0].trim().length == 0) {
+        attendees = attendees.slice(1);
       }
-      else {
-        message.channel.send("Wait, " + message.member.user + ", you already told me you were coming!");
+      if(cants[0].trim().length == 0) {
+        cants = cants.slice(1);
       }
-    }
-    else if (args == "no") {
-      if(!cants.includes(message.member.user.username)) {
+
+      var stateChange = 1;
+      if (args[1] == "yes") {
         if(!attendees.includes(message.member.user.username)) {
-          message.channel.send("Aw, " + message.member.user + ", tell me if you change your mind!");
+          if(!cants.includes(message.member.user.username)) {
+            message.channel.send("Ok, " + message.member.user + ", I'll see you there!");
+          }
+          else {
+            cants.splice(cants.indexOf(message.member.user.username),1);
+            message.channel.send("Oh, " + message.member.user + ", you changed your mind! I'll see you there!");
+          }
+          attendees.push(message.member.user.username);
         }
         else {
-          attendees.splice(attendees.indexOf(message.member.user.username),1);
-          message.channel.send("Aw, " + message.member.user + ", you said you were coming...");
+          message.channel.send("Wait, " + message.member.user + ", you already told me you were coming!");
         }
-        cants.push(message.member.user.username);
+      }
+      else if (args[1] == "no") {
+        if(!cants.includes(message.member.user.username)) {
+          if(!attendees.includes(message.member.user.username)) {
+            message.channel.send("Aw, " + message.member.user + ", tell me if you change your mind!");
+          }
+          else {
+            attendees.splice(attendees.indexOf(message.member.user.username),1);
+            message.channel.send("Aw, " + message.member.user + ", you said you were coming...");
+          }
+          cants.push(message.member.user.username);
+        }
+        else {
+          message.channel.send("Wait, " + message.member.user + ", you already told me you weren't coming...?");
+        }
       }
       else {
-        message.channel.send("Wait, " + message.member.user + ", you already told me you weren't coming...?");
-      }
-    }
-    else {
-      var cants_list = cants.join("\n");
-      var embed = {
-        "title": "Attendees of the " + event.name,
-        "description": event.description,
-        "color": 612041,
-        "footer": {
-          "text": "'!coming yes' or '!coming no' to say if you're coming!"
-        },
-        "thumbnail": {
-          "url": event.icon
-        },
-        "fields": [
-          {
-            "name": "Coming",
-            "value": attendees.length != 0 ? attendees.join("\n") : "-",
-            "inline": true
+        var cants_list = cants.join("\n");
+        var embed = {
+          "title": "Attendees of the " + event.name,
+          "description": event.description,
+          "color": 612041,
+          "footer": {
+            "text": "'!coming " + args[0] + " yes' or '!coming " + args[0] + " no' to say if you're coming!"
           },
-          {
-            "name": "Not",
-            "value": cants.length != 0 ? cants.join("\n") : "-",
-            "inline": true
-          }
-        ]
+          "thumbnail": {
+            "url": event.icon
+          },
+          "fields": [
+            {
+              "name": "Coming",
+              "value": attendees.length != 0 ? attendees.join("\n") : "-",
+              "inline": true
+            },
+            {
+              "name": "Not",
+              "value": cants.length != 0 ? cants.join("\n") : "-",
+              "inline": true
+            }
+          ]
+        }
+
+        var numId = parseInt(args[0]);
+        if(lastListing[numId] != null)
+      	{
+      		lastListing[numId].delete();
+      	}
+        message.channel.send({ embed }).then(message => { lastListing[numId] = message });
+
+        stateChange = 0;
       }
 
-      if(lastListing != null)
-    	{
-    		lastListing.delete();
-    	}
-      message.channel.send({ embed }).then(message => { lastListing = message });
-      message.delete();
+      if(stateChange == 1)
+      {
+        var attendees_list = attendees.join("\n");
+        var cants_list = cants.join("\n");
+        fs.writeFile(appDir + "/occasions/attendance/"+args[0]+"_attendees.txt", attendees_list, function(err) {
+          if(err) console.log(err);
+          console.log("File saved");
+        });
+        fs.writeFile(appDir + "/occasions/attendance/"+args[0]+"_cants.txt", cants_list, function(err) {
+          if(err) console.log(err);
+          console.log("File saved");
+        });
+      }
+    }); // read file closers
+    });
+  }
+  else {
+    fs.readdir(appDir + "/occasions/", function(err, filenames) {
+      if(err) console.log(err);
 
-      stateChange = 0;
-    }
+      for(var i = filenames.length-1; i >= 0; i--)
+      {
+        if(filenames[i].indexOf("occasion") == -1)
+        {
+          filenames.splice(i, 1);
+        }
+      }
 
-    if(stateChange == 1)
-    {
-      var attendees_list = attendees.join("\n");
-      var cants_list = cants.join("\n");
-      fs.writeFile(appDir + "/occasions/current_attendees.txt", attendees_list, function(err) {
-        if(err) console.log(err);
-        console.log("File saved");
+      Promise.all(filenames.map(function(name) {
+        return require(appDir + "/occasions/"+name);
+      })).then(data => {
+        for(var i = 0; i < data.length; i++)
+        {
+          for(var j = i; j < data.length; j++)
+          {
+            date1 = data[i].date.split("-");
+            date2 = data[j].date.split("-");
+            if(new Date(date2[0], date2[1], date2[2]) < new Date(date2[0], date2[1], date2[2]))
+            {
+              var temp = data[j];
+              data[i] = data[j];
+              data[j] = temp;
+            }
+          }
+        }
+        var fieldlist = [];
+        for(var i = 0; i < data.length && i < 3; i++)
+        {
+          fieldlist.push(
+            {
+              "name": data[i].id + ": " + data[i].name,
+              "value": data[i].description
+            }
+          );
+        }
+        var embed = {
+          "title": "Upcoming events",
+          "color": 612041,
+          "footer": {
+            "text": "'!coming [id]' to see who's coming, or go to the announcements channel for details!"
+          },
+          "fields": fieldlist
+        }
+
+        if(lastComing != null)
+      	{
+      		lastComing.delete();
+      	}
+        message.channel.send({ embed }).then(message => { lastComing = message });
       });
-      fs.writeFile(appDir + "/occasions/current_cants.txt", cants_list, function(err) {
-        if(err) console.log(err);
-        console.log("File saved");
-      });
-    }
-  }); // read file closers
-  });
+    });
+  }
+  message.delete();
 }
