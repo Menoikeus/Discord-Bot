@@ -127,8 +127,8 @@ exports.run = (client, message, args) => {
         {
           for(var j = i; j < data.length; j++)
           {
-            date1 = data[i].date.split("-");
-            date2 = data[j].date.split("-");
+            var date1 = data[i].date.split("-");
+            var date2 = data[j].date.split("-");
             if(new Date(date2[0], date2[1], date2[2]) < new Date(date2[0], date2[1], date2[2]))
             {
               var temp = data[j];
@@ -137,16 +137,27 @@ exports.run = (client, message, args) => {
             }
           }
         }
+
         var fieldlist = [];
-        for(var i = 0; i < data.length && i < 3; i++)
+        var count = 0, events_registered = 0;
+        var current_date = new Date();
+        while(count < data.length && events_registered < 3)
         {
-          fieldlist.push(
-            {
-              "name": data[i].id + ": " + data[i].name,
-              "value": data[i].description
-            }
-          );
+          var date = data[count].date.split("-");
+          var current_date = new Date(current_date.getFullYear(), current_date.getMonth(), current_date.getDate());
+          if(!(current_date > new Date(date[0], date[1], date[2])))
+          {
+            fieldlist.push(
+              {
+                "name": data[count].id + ": " + data[count].name,
+                "value": data[count].description
+              }
+            );
+            events_registered++;
+          }
+          count++;
         }
+
         var embed = {
           "title": "Upcoming events",
           "color": 612041,
@@ -155,7 +166,6 @@ exports.run = (client, message, args) => {
           },
           "fields": fieldlist
         }
-
         if(lastComing != null)
       	{
       		lastComing.delete();
