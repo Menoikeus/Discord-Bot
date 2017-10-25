@@ -29,10 +29,7 @@ client.on('ready', () => {
       }
 
     	db.query("SELECT * FROM users WHERE userid="+member.user.id, function(error, results, fields) {
-        if(error)
-        {
-          console.log(error);
-        }
+        if(error) { console.log(error); }
     		else if(results.length == 0)
     		{
     			db.query("INSERT INTO users SET ?", info, function(error) {
@@ -52,19 +49,16 @@ client.on('ready', () => {
 
 // time scheduler
 // level up stuff
-
 schedule.scheduleJob('*/2 * * * *', function(){
  client.guilds.forEach(function(guild) {
-   //console.log(guild.channels);
    guild.channels.forEach(function(channel) {
      if(channel.id != guild.afkChannelID && channel.type == "voice") {
       channel.members.forEach(function(member) {
         db.query("UPDATE users SET exp = exp + 1 WHERE userid="+member.user.id, function(error) {
-          if(error){console.log(error);}
+          if(error) { console.log(error); }
 
           db.query("SELECT * FROM users WHERE userid="+member.user.id, function(error, results, fields) {
-            if(error)
-            {console.log(error);}
+            if(error) { console.log(error); }
             else if(results[0].exp >= (results[0].level+1) * 50)
             {
               db.query("UPDATE users SET exp = exp - (level+1) * 50 WHERE userid="+member.user.id, function(error) { if(error) {console.log(error);}});
@@ -72,7 +66,6 @@ schedule.scheduleJob('*/2 * * * *', function(){
             }
           });
         });
-        console.log("EXP!");
       });
      }
    });
@@ -156,7 +149,6 @@ schedule.scheduleJob('* 30 18 * * *', function(){
   }
   client.user.setGame(game + " with a friend");
 });
-
 schedule.scheduleJob('* 30 21 * * 0-4,6', function(){
   var gameChoice = Math.floor(Math.random() * 5);
   var game;
@@ -189,7 +181,7 @@ schedule.scheduleJob('* 30 21 * * 5', function(){
 // basically separate files are called when events are triggered, rather
 // than code within this file
 fs.readdir(appDir + "/events/", (err, files) => {     // read filesi n dir
-	if(err) return console.error(err);
+	if(error) { console.log(error); }
 
 	files.forEach(file => {
 		let eventFunction = require('./events/' + file);
@@ -232,8 +224,6 @@ client.on('message', message => {
 	let command = message.content.split(" ")[0];
 	command = command.slice(config.prefix.length);   // what command?
 	let args = message.content.split(" ").slice(1);  // we want to get rid of the actual command, which is not an argument for itself
-
-	console.log(command);
 
 	try{
 		let commandFile = require('./commands/'+command+'.js');

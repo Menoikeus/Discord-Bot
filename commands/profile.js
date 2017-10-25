@@ -8,7 +8,6 @@ const fs = require("fs");
 
 function wordPic(word, size, font, color)
 {
-  console.log(word);
   var textBox = new Jimp(50 * word.length + 10, 70, function (err,image) { if(err) throw err; });
   textBox.print(font, 0, 0, word);
   textBox.autocrop(false);
@@ -60,11 +59,11 @@ exports.run = (client, message, args) => {
 
     // query for the user
     db.query("SELECT * FROM users WHERE userid="+message.member.user.id, function(err, results, fields) {
-      if(err) throw err;
+      if(error) { console.log(error); }
 
       // take in the profile placard
       Jimp.read('./profile/placard.png/', function (err,placard) {
-        if(err) throw err;
+        if(error) { console.log(error); }
 
         // here, we find what the profile placard background should be (default or database's)
         var bgPath;
@@ -85,7 +84,7 @@ exports.run = (client, message, args) => {
 
         // read the background image
         Jimp.read(bgPath, function (err,bgImage) {
-          if(err) throw err;
+          if(error) { console.log(error); }
 
           // resize and place on the main image
           bgImage.resize(500,225);
@@ -104,7 +103,7 @@ exports.run = (client, message, args) => {
 
           // read in avatar image
           Jimp.read(avatarPath, function (err,avatar) {
-            if(err) throw err;
+            if(error) { console.log(error); }
 
             // resize and place avatar
             avatar.resize(85, 85);
@@ -152,7 +151,7 @@ exports.run = (client, message, args) => {
               // output image!
               placard.getBuffer(Jimp.MIME_PNG, function(err,buffa)
               {
-                if(err) throw err;
+                if(error) { console.log(error); }
 
                 // delete the last profile that the user requested, so as to reduce profile spam
                 if(lastMessage[message.member.user.id] != null) {
