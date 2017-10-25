@@ -180,7 +180,7 @@ schedule.scheduleJob('* 30 21 * * 5', function(){
 // event handler *********************************************
 // basically separate files are called when events are triggered, rather
 // than code within this file
-fs.readdir(appDir + "/events/", (err, files) => {     // read filesi n dir
+fs.readdir(appDir + "/events/", (error, files) => {     // read filesi n dir
 	if(error) { console.log(error); }
 
 	files.forEach(file => {
