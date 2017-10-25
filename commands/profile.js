@@ -58,11 +58,11 @@ exports.run = (client, message, args) => {
     }
 
     // query for the user
-    db.query("SELECT * FROM users WHERE userid="+message.member.user.id, function(err, results, fields) {
+    db.query("SELECT * FROM users WHERE userid="+message.member.user.id, function(error, results, fields) {
       if(error) { console.log(error); }
 
       // take in the profile placard
-      Jimp.read('./profile/placard.png/', function (err,placard) {
+      Jimp.read('./profile/placard.png/', function (error,placard) {
         if(error) { console.log(error); }
 
         // here, we find what the profile placard background should be (default or database's)
@@ -83,7 +83,7 @@ exports.run = (client, message, args) => {
         }*/
 
         // read the background image
-        Jimp.read(bgPath, function (err,bgImage) {
+        Jimp.read(bgPath, function (error,bgImage) {
           if(error) { console.log(error); }
 
           // resize and place on the main image
@@ -102,7 +102,7 @@ exports.run = (client, message, args) => {
           }
 
           // read in avatar image
-          Jimp.read(avatarPath, function (err,avatar) {
+          Jimp.read(avatarPath, function (error,avatar) {
             if(error) { console.log(error); }
 
             // resize and place avatar
@@ -149,7 +149,7 @@ exports.run = (client, message, args) => {
               placard.composite(textPlacard, 0, 0);
 
               // output image!
-              placard.getBuffer(Jimp.MIME_PNG, function(err,buffa)
+              placard.getBuffer(Jimp.MIME_PNG, function(error,buffa)
               {
                 if(error) { console.log(error); }
 
