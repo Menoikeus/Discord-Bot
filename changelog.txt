@@ -1,6 +1,13 @@
 **__Changelog:__**
 
 
+**13 July 2017**
+  *-Added announcement channel and announcement system*
+  *-Added event system, where users can say if they're attending or not*
+
+**27 May 2017**
+  *-Changed exp system to grant exp based on time rather than message frequency*
+
 **18 May 2017**
   *-Added a playing status schedule*
 
