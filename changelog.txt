@@ -1,5 +1,8 @@
 **__Changelog:__**
 
+**23 September 2017**
+  *-Announcement system now supports multiple events*
+  *-!coming without parameters now shows the three nearest upcoming events*
 
 **13 July 2017**
   *-Added announcement channel and announcement system*
