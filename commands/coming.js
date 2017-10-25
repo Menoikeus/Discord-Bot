@@ -145,8 +145,9 @@ exports.run = (client, message, args) => {
         {
           var date = data[count].date.split("-");
           var current_date = new Date(current_date.getFullYear(), current_date.getMonth(), current_date.getDate());
-          if(!(current_date > new Date(date[0], date[1], date[2])))
+          if(!(current_date > new Date(date[0], date[1]-1, date[2])))
           {
+			  
             fieldlist.push(
               {
                 "name": data[count].id + ": " + data[count].name,
