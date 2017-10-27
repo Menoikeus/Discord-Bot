@@ -73,7 +73,7 @@ schedule.scheduleJob('*/2 * * * *', function(){
 });
 
 // SQL query to avoid timeout
-schedule.scheduleJob('* * * * * 1-7', function(){
+schedule.scheduleJob('* * 0,12 * * 1-7', function(){
  console.log("Pinged sql server");
  db.query("SELECT * FROM users", function(error, results, fields) {
    if(error) { console.log(error); }
