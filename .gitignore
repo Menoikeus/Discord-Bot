@@ -47,6 +47,8 @@ Temporary Items
 .apdisk
 
 
-
 # discord bot
 *.json
+
+# node modules
+/node_modules/

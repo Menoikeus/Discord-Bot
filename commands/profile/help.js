@@ -10,6 +10,5 @@ exports.run = (client, message, args) => {
 			  "**!profile**\t\t\t\t\t\t\t  *Brings up your profile placard*\n" +
 			  "**!profile image [*url*]**\t\t *Replaces profile placard background*\n";
 
-
 	message.channel.send(output).then(message => { lastHelp = message });
 }

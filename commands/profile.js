@@ -8,7 +8,6 @@ const fs = require("fs");
 
 function wordPic(word, size, font, color)
 {
-  console.log(word);
   var textBox = new Jimp(50 * word.length + 10, 70, function (err,image) { if(err) throw err; });
   textBox.print(font, 0, 0, word);
   textBox.autocrop(false);
@@ -59,12 +58,12 @@ exports.run = (client, message, args) => {
     }
 
     // query for the user
-    db.query("SELECT * FROM users WHERE userid="+message.member.user.id, function(err, results, fields) {
-      if(err) throw err;
+    db.query("SELECT * FROM users WHERE userid="+message.member.user.id, function(error, results, fields) {
+      if(error) { console.log(error); }
 
       // take in the profile placard
-      Jimp.read('./profile/placard.png/', function (err,placard) {
-        if(err) throw err;
+      Jimp.read('./profile/placard.png/', function (error,placard) {
+        if(error) { console.log(error); }
 
         // here, we find what the profile placard background should be (default or database's)
         var bgPath;
@@ -84,8 +83,8 @@ exports.run = (client, message, args) => {
         }*/
 
         // read the background image
-        Jimp.read(bgPath, function (err,bgImage) {
-          if(err) throw err;
+        Jimp.read(bgPath, function (error,bgImage) {
+          if(error) { console.log(error); }
 
           // resize and place on the main image
           bgImage.resize(500,225);
@@ -103,8 +102,8 @@ exports.run = (client, message, args) => {
           }
 
           // read in avatar image
-          Jimp.read(avatarPath, function (err,avatar) {
-            if(err) throw err;
+          Jimp.read(avatarPath, function (error,avatar) {
+            if(error) { console.log(error); }
 
             // resize and place avatar
             avatar.resize(85, 85);
@@ -150,9 +149,9 @@ exports.run = (client, message, args) => {
               placard.composite(textPlacard, 0, 0);
 
               // output image!
-              placard.getBuffer(Jimp.MIME_PNG, function(err,buffa)
+              placard.getBuffer(Jimp.MIME_PNG, function(error,buffa)
               {
-                if(err) throw err;
+                if(error) { console.log(error); }
 
                 // delete the last profile that the user requested, so as to reduce profile spam
                 if(lastMessage[message.member.user.id] != null) {
@@ -160,7 +159,10 @@ exports.run = (client, message, args) => {
                 }
                 message.channel.send({
                   files:  [{ attachment:  buffa}]
-                }).then( mess => { lastMessage[message.member.user.id] = mess })
+                }).then( mess => {
+        					lastMessage[message.member.user.id] = mess;
+        					message.delete();
+        				});
               });
             });
           });

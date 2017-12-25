@@ -14,7 +14,8 @@ exports.run = (client, message, args) => {
 			  "**!team [*names*]**\t\t\t\t\t\t\t\t *Creates two random teams based on the names*\n" +
 				"**!rankedteam [*names, ranks*]**\t\t*Creates two randomly balanced teams based on the player names and their ranks*\n" +
 				"**!profile [*command*]**\t\t\t\t\t\t*Calls profile-specific commands. \'!profile help\' to learn more*\n" +
-				"**!changelog**\t\t\t\t\t\t\t\t\t\t*Shows the changelog*\n";
+				"**!changelog**\t\t\t\t\t\t\t\t\t\t*Shows the changelog*\n" +
+				"**!coming [*yes*|*no*]**\t\t\t\t\t\t\t*Say if you're attending the current event. No arguments to show who's coming*\n";
 
 	message.channel.send(output).then(message => { lastHelp = message });
 }

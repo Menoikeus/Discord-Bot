@@ -1,5 +1,15 @@
 **__Changelog:__**
 
+**23 September 2017**
+  *-Announcement system now supports multiple events*
+  *-!coming without parameters now shows the three nearest upcoming events*
+
+**13 July 2017**
+  *-Added announcement channel and announcement system*
+  *-Added event system, where users can say if they're attending or not*
+
+**27 May 2017**
+  *-Changed exp system to grant exp based on time rather than message frequency*
 
 **18 May 2017**
   *-Added a playing status schedule*
