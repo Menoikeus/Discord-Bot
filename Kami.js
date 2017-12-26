@@ -10,6 +10,8 @@ var appDir = path.dirname(require.main.filename);
 
 // SQL
 const db = require(appDir + "/mysql.js");
+// Mongoose
+const db1 = require(appDir + "/mongodb.js");
 
 // in the beginning
 client.on('ready', () => {
@@ -21,27 +23,26 @@ client.on('ready', () => {
   client.guilds.forEach(function(guild) {
     guild.members.forEach(function(member) {
       console.log("Trying to insert player " + member.user.username);
-      var info = {
+      var userObj = {
         "username"	: member.user.username,
         "userid"		: member.user.id,
     		"level"			: 0,
     		"exp"				: 0
       }
+      var query = {
+        "userid"		: member.user.id
+      }
 
-    	db.query("SELECT * FROM users WHERE userid="+member.user.id, function(error, results, fields) {
-        if(error) { console.log(error); }
-    		else if(results.length == 0)
-    		{
-    			db.query("INSERT INTO users SET ?", info, function(error) {
-    				if(error)
-    				{
-    					console.log(error);
-    				}
-    			});
-    		}
-    		else {
-    			console.log("Already there! ID: " + member.user.id + " " + results[0]);
-    		}
+      db1.collection("users").find(query).toArray().then( users => {
+        if (users.length == 0) {
+          db1.collection("users").insertOne(userObj, function(err, res) {
+           if (err) throw err;
+           console.log(member.user.username + "inserted");
+         });
+        }
+        else {
+          console.log("Already there! ID: " + member.user.id + " " + results[0]);
+        }
       });
     });
   });
