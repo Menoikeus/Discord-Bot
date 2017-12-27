@@ -1,4 +1,5 @@
-const MongoClient = require( 'mongodb' ).MongoClient;
+// SQL
+var MongoClient = require( 'mongodb' ).MongoClient;
 const config = require('./config_mongodb.json');
 var url = "mongodb://" + config.user + ":" + config.password + "@" + config.database;
 var _db;

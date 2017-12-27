@@ -1,34 +1,23 @@
-var path = require('path');
-var appDir = path.dirname(require.main.filename);
-const db = require(appDir + "/mysql.js");
+const mongodb = require("../mongodb/mongodb.js");
+const redirector = require("../mongodb/redirector.js");
+var db;
 
-exports.run = (client, member) => {
+exports.run = async (client, member) => {
+	db = await mongodb.getDb();
+	directoryid = await redirector.getDirectoryId(db, member.guild);
+
 	member.guild.defaultChannel.send('Welcome to the server, ' + member + '!');
 
 	console.log("Trying to insert player " + member.user.username);
-  var info = {
+  var userObj = {
     "username"	: member.user.username,
     "userid"		: member.user.id,
 		"level"			: 0,
 		"exp"				: 0
   }
 
-	db.query("SELECT * FROM users WHERE userid="+member.user.id, function(error, results, fields) {
-    if(error)
-    {
-      console.log(error);
-    }
-		else if(results.length == 0)
-		{
-			db.query("INSERT INTO users SET ?", info, function(error) {
-				if(error)
-				{
-					console.log(error);
-				}
-			});
-		}
-		else {
-			console.log("Already there! ID: " + member.user.id + " " + results[0]);
-		}
-  });
+	var users = await db.db(directoryid).collection("users").find({ "userid": member.user.id }).toArray();
+	if (users.length == 0) {
+		db.db(directoryid).collection("users").insertOne(userObj);
+	}
 };

@@ -1,5 +1,3 @@
-var path = require('path');
-var appDir = path.dirname(require.main.filename);
 var fs = require('fs');
 
 var lastListing = {};
@@ -8,12 +6,12 @@ exports.run = (client, message, args) => {
   var attendees = [];
   var cants = [];
 
-  if(fs.existsSync(appDir + "/occasions/"+args[0]+"_occasion.json"))
+  if(fs.existsSync("./occasions/"+args[0]+"_occasion.json"))
 	{
-		var event = require(appDir + "/occasions/"+args[0]+"_occasion.json");
+		var event = require("../occasions/"+args[0]+"_occasion.json");
 
-    fs.readFile(appDir + '/occasions/attendance/'+args[0]+'_attendees.txt', 'utf8', function(err, read_attendees) {
-    fs.readFile(appDir + '/occasions/attendance/'+args[0]+'_cants.txt', 'utf8', function(err, read_cants) {
+    fs.readFile('./occasions/attendance/'+args[0]+'_attendees.txt', 'utf8', function(err, read_attendees) {
+    fs.readFile('./occasions/attendance/'+args[0]+'_cants.txt', 'utf8', function(err, read_cants) {
       if(err) console.log(err);
 
       attendees = read_attendees.split("\n");
@@ -96,11 +94,11 @@ exports.run = (client, message, args) => {
       {
         var attendees_list = attendees.join("\n");
         var cants_list = cants.join("\n");
-        fs.writeFile(appDir + "/occasions/attendance/"+args[0]+"_attendees.txt", attendees_list, function(err) {
+        fs.writeFile("./occasions/attendance/"+args[0]+"_attendees.txt", attendees_list, function(err) {
           if(err) console.log(err);
           console.log("File saved");
         });
-        fs.writeFile(appDir + "/occasions/attendance/"+args[0]+"_cants.txt", cants_list, function(err) {
+        fs.writeFile("./occasions/attendance/"+args[0]+"_cants.txt", cants_list, function(err) {
           if(err) console.log(err);
           console.log("File saved");
         });
@@ -109,7 +107,7 @@ exports.run = (client, message, args) => {
     });
   }
   else {
-    fs.readdir(appDir + "/occasions/", function(err, filenames) {
+    fs.readdir("./occasions/", function(err, filenames) {
       if(err) console.log(err);
 
       for(var i = filenames.length-1; i >= 0; i--)
@@ -121,7 +119,7 @@ exports.run = (client, message, args) => {
       }
 
       Promise.all(filenames.map(function(name) {
-        return require(appDir + "/occasions/"+name);
+        return require("../occasions/"+name);
       })).then(data => {
         for(var i = 0; i < data.length; i++)
         {
@@ -147,7 +145,7 @@ exports.run = (client, message, args) => {
           var current_date = new Date(current_date.getFullYear(), current_date.getMonth(), current_date.getDate());
           if(!(current_date > new Date(date[0], date[1]-1, date[2])))
           {
-			  
+
             fieldlist.push(
               {
                 "name": data[count].id + ": " + data[count].name,
