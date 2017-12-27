@@ -53,7 +53,7 @@ client.on('ready', async () => {
     	  "level"		 : 0,
     	  "exp"      : 0
       }
-      
+
       var users = await db.db(directoryid).collection("users").find({ "userid": member.user.id }).toArray();
       if (users.length == 0) {
           db.db(directoryid).collection("users").insertOne(userObj);
@@ -68,7 +68,7 @@ client.on('ready', async () => {
 
   // time scheduler
   // level up stuff
-  schedule.scheduleJob('*/5 * * * * *', async function(){
+  schedule.scheduleJob('*/2 * * * *', async function(){
     client.guilds.forEach(async function(guild) {
       servers = await db.db("kami_db").collection("servers").find({ serverid: guild.id }).toArray();
       directoryid = servers[0].directoryid;
@@ -84,12 +84,12 @@ client.on('ready', async () => {
         }
       });
 
-      db.db(directoryid).collection("users").find({ $where: "this.exp >= (this.level+1) * 10" }).snapshot().forEach(
+      db.db(directoryid).collection("users").find({ $where: "this.exp >= (this.level+1) * 50" }).snapshot().forEach(
         function(lpUser) {
           db.db(directoryid).collection("users").update(
             { _id: lpUser._id },
             { $set: {
-              exp: lpUser.exp - (lpUser.level+1) * 10,
+              exp: lpUser.exp - (lpUser.level+1) * 50,
               level: lpUser.level + 1 } }
             );
           console.log((new Date()) + " - User " + lpUser.username + " with ID " + lpUser.userid + " leveled up to level " + (lpUser.level+1));
