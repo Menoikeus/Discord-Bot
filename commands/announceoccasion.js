@@ -1,11 +1,9 @@
-var path = require('path');
-var appDir = path.dirname(require.main.filename);
 const fs = require("fs");
 
 exports.run = (client, message, args) => {
-	if(fs.existsSync(appDir + "/occasions/"+args+"_occasion.json"))
+	if(fs.existsSync("./occasions/"+args[0]+"_occasion.json"))
 	{
-		var occasion = require(appDir + "/occasions/"+args+"_occasion.json");
+		var occasion = require("../occasions/"+args[0]+"_occasion.json");
 		var embed = occasion.embed;
 		message.guild.channels.find("name","announcements").send({ embed });
 		message.delete();
