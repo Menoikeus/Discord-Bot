@@ -1,10 +1,13 @@
 // this is used to change the player's profile placard
 const Jimp = require("jimp");
-var path = require('path');
-var appDir = path.dirname(require.main.filename);
-const db = require(appDir + "/mysql.js");
+const mongodb = require("../../mongodb/mongodb.js");
+const redirector = require("../../mongodb/redirector.js");
+var db;
 
-exports.run = (client, message, args) => {
+exports.run = async (client, message, args) => {
+  db = await mongodb.getDb();
+  directoryid = await redirector.getDirectoryId(db, message.member.guild);
+
   if(args.length > 0) {
     Jimp.read(args[0], function (err,bgImage) {
       if(err)
@@ -14,7 +17,7 @@ exports.run = (client, message, args) => {
       else
       {
         bgImage.resize(500,225);
-        bgImage.write(appDir + "/profile/images/" + message.member.user.id + ".jpeg");
+        bgImage.write("./profile/images/" + directoryid + "/" + message.member.user.id + ".jpeg");
         message.channel.send(message.member + ", I've changed your profile background!");
       }
     });

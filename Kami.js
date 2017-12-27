@@ -4,73 +4,98 @@ const config = require('./config.json');  // config json (for security)
 const fs = require("fs");                 // ???
 const schedule = require('node-schedule');
 
-// PATH
-var path = require('path');               // so we can get absolute path
-var appDir = path.dirname(require.main.filename);
-
-// SQL
-const db = require(appDir + "/mysql.js");
 // Mongoose
-const db1 = require(appDir + "/mongodb.js");
+const mongodb = require("./mongodb/mongodb.js");
+mongodb.connect();
+var db;
 
 // in the beginning
-client.on('ready', () => {
+client.on('ready', async () => {
+  db = await mongodb.getDb();
   client.user.setGame("tennis with her friends");   // bot status
-  console.log('I am ready!');
 
   // ADDING ANY UNADDED GUILD members
-   // go through guild members and check against sql server
-  client.guilds.forEach(function(guild) {
-    guild.members.forEach(function(member) {
+  // go through guild members and check against sql server
+  await client.guilds.forEach(async function(guild) {
+    var directoryid;
+
+    var servers = await db.db("kami_db").collection("servers").find({ serverid: guild.id }).toArray();
+    if (servers.length == 0) {
+      var server = {
+        servername: guild.name,
+        serverid: guild.id,
+        directoryid: guild.id
+      }
+      var serverObj = await db.db("kami_db").collection("servers").insertOne(server);
+
+      var directory_info = {
+        password: "password",
+        associated_servers: [{
+          $ref: "servers",
+          $id:   serverObj.insertedId,
+          $db:   "kami_db"
+        }]
+      }
+      await db.db(guild.id).collection("info").insertOne(directory_info);
+
+      directoryid = guild.id;
+      console.log('New server ID: ' + guild.id + ' added');
+    }
+    else {
+      directoryid = servers[0].directoryid;
+    }
+
+    guild.members.forEach(async function(member) {
       console.log("Trying to insert player " + member.user.username);
       var userObj = {
-        "username"	: member.user.username,
-        "userid"		: member.user.id,
-    		"level"			: 0,
-    		"exp"				: 0
+        "username" : member.user.username,
+        "userid"	 : member.user.id,
+    	  "level"		 : 0,
+    	  "exp"      : 0
       }
-      var query = {
-        "userid"		: member.user.id
+      
+      var users = await db.db(directoryid).collection("users").find({ "userid": member.user.id }).toArray();
+      if (users.length == 0) {
+          db.db(directoryid).collection("users").insertOne(userObj);
+          console.log(member.user.username + " inserted");
       }
+      else {
+        console.log("Already there! ID: " + member.user.id + " " + users[0].userid);
+      }
+    });
+  });
+  console.log('I am ready!');
 
-      db1.collection("users").find(query).toArray().then( users => {
-        if (users.length == 0) {
-          db1.collection("users").insertOne(userObj, function(err, res) {
-           if (err) throw err;
-           console.log(member.user.username + "inserted");
-         });
+  // time scheduler
+  // level up stuff
+  schedule.scheduleJob('*/5 * * * * *', async function(){
+    client.guilds.forEach(async function(guild) {
+      servers = await db.db("kami_db").collection("servers").find({ serverid: guild.id }).toArray();
+      directoryid = servers[0].directoryid;
+
+      await guild.channels.forEach(function(channel) {
+        if(channel.id != guild.afkChannelID && channel.type == "voice") {
+          channel.members.forEach(function(member) {
+            db.db(directoryid).collection("users").updateOne(
+              { "userid"  : member.user.id },
+              { $inc: { "exp" : 1 } }
+            );
+          });
         }
-        else {
-          console.log("Already there! ID: " + member.user.id + " " + results[0]);
-        }
+      });
+
+      db.db(directoryid).collection("users").find({ $where: "this.exp >= (this.level+1) * 10" }).snapshot().forEach(
+        function(lpUser) {
+          db.db(directoryid).collection("users").update(
+            { _id: lpUser._id },
+            { $set: {
+              exp: lpUser.exp - (lpUser.level+1) * 10,
+              level: lpUser.level + 1 } }
+            );
+          console.log((new Date()) + " - User " + lpUser.username + " with ID " + lpUser.userid + " leveled up to level " + (lpUser.level+1));
       });
     });
   });
-});
-
-// time scheduler
-// level up stuff
-schedule.scheduleJob('*/2 * * * *', function(){
- client.guilds.forEach(function(guild) {
-   guild.channels.forEach(function(channel) {
-     if(channel.id != guild.afkChannelID && channel.type == "voice") {
-      channel.members.forEach(function(member) {
-        db.query("UPDATE users SET exp = exp + 1 WHERE userid="+member.user.id, function(error) {
-          if(error) { console.log(error); }
-
-          db.query("SELECT * FROM users WHERE userid="+member.user.id, function(error, results, fields) {
-            if(error) { console.log(error); }
-            else if(results[0].exp >= (results[0].level+1) * 50)
-            {
-              db.query("UPDATE users SET exp = exp - (level+1) * 50 WHERE userid="+member.user.id, function(error) { if(error) {console.log(error);}});
-              db.query("UPDATE users SET level = level + 1 WHERE userid="+member.user.id, function(error) { if(error) {console.log(error);}});
-            }
-          });
-        });
-      });
-     }
-   });
- });
 });
 
 // SQL query to avoid timeout
@@ -189,7 +214,7 @@ schedule.scheduleJob('* 30 21 * * 5', function(){
 // event handler *********************************************
 // basically separate files are called when events are triggered, rather
 // than code within this file
-fs.readdir(appDir + "/events/", (error, files) => {     // read filesi n dir
+fs.readdir("./events/", (error, files) => {     // read filesi n dir
 	if(error) { console.log(error); }
 
 	files.forEach(file => {
@@ -205,29 +230,8 @@ fs.readdir(appDir + "/events/", (error, files) => {     // read filesi n dir
 // as we did with events, separate files are used when commands are called
 // doing this, we can organize code better AND we can reload individual commands
 // without restarting the bot
-var lastPWarning = null;
 client.on('message', message => {
 	if(message.author.bot) return;   // make sure a human asked for this
-
-	// NONCOMMANDS
-  // Whatever happens here is not a command
-
-  // weak content filter
-	if (message.content.includes("porn") && message.content.includes("http"))
-	{
-		var currentHour = (new Date()).getHours();
-		if(currentHour <= 23 && currentHour > 6)    // check current hour
-		{
-			console.log("Detected!");
-
-			if(lastPWarning != null)
-			{
-				lastPWarning.delete();
-			}
-			message.channel.send("Please no pornographic material before 12:00 AM EST").then(sameMessage => {lastPWarning = sameMessage});
-			message.delete();
-		}
-	}
 
   // COMMAND HANDLING
 	let command = message.content.split(" ")[0];
