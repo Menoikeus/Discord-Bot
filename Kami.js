@@ -98,52 +98,20 @@ client.on('ready', async () => {
   });
 });
 
-// weekend
+// Status schedule
 schedule.scheduleJob('* * 10 * * 6-7', function(){
- client.user.setGame("some piano to relax");
+ client.user.setGame("some piano");
 });
 schedule.scheduleJob('* * 12 * * 6-7', function(){
- client.user.setGame("video games with her friends");
+ client.user.setGame("video games");
 });
-
-// school
 schedule.scheduleJob('* * 7 * * 1-5', function(){
- client.user.setGame("with her cat before school");
+ client.user.setGame("with her cat");
 });
-schedule.scheduleJob('* * 8 * * 1-5', function(){
- client.user.setGame("music while she does her homework");
-});
-schedule.scheduleJob('* * 9 * * 1-5', function(){
- client.user.setGame("piano during jazz combo");
-});
-schedule.scheduleJob('* * 10 * * 1-5', function(){
- client.user.setGame("with her hair in Spanish class");
-});
-schedule.scheduleJob('* * 11 * * 1-5', function(){
- client.user.setGame("Set during in programming class");
-});
-schedule.scheduleJob('* * 12 * * 1-5', function(){
- client.user.setGame("with her food at lunch");
-});
-schedule.scheduleJob('* * 13 * * 1-5', function(){
- client.user.setGame("with her calculator during chemistry");
-});
-schedule.scheduleJob('* * 14 * * 1-2,4-5', function(){
- client.user.setGame("with pulleys during physics");
-});
-schedule.scheduleJob('* 30 15 * * 1-2,4-5', function(){
+schedule.scheduleJob('* * 15 * * 1-5', function(){
   client.user.setGame("tennis with her friends");
 });
-
-// WEDNESDAY
-schedule.scheduleJob('* * 14 * * 3', function(){
-  var schoolChoice = Math.floor(Math.random() * 4);
-  var schools = ["Belmont Hill", "Governer's", "Milton Academy", "Rivers"];
-
- client.user.setGame("in a match against " + schools[schoolChoice]);
-});
-
-schedule.scheduleJob('* 30 17 * * *', function(){
+schedule.scheduleJob('* * 17 * * *', function(){
   var foodChoice = Math.floor(Math.random() * 4);
   var food;
   switch(foodChoice)
@@ -159,7 +127,7 @@ schedule.scheduleJob('* 30 17 * * *', function(){
   }
   client.user.setGame("a movie while eating " + food);
 });
-schedule.scheduleJob('* 30 18 * * *', function(){
+schedule.scheduleJob('* * 18 * * *', function(){
   var gameChoice = Math.floor(Math.random() * 4);
   var game;
   switch(gameChoice)
@@ -173,9 +141,9 @@ schedule.scheduleJob('* 30 18 * * *', function(){
     case 3: game = "Melee";
       break;
   }
-  client.user.setGame(game + " with a friend");
+  client.user.setGame(game);
 });
-schedule.scheduleJob('* 30 21 * * 0-4,6', function(){
+schedule.scheduleJob('* * 21 * * *', function(){
   var gameChoice = Math.floor(Math.random() * 5);
   var game;
   switch(gameChoice)
@@ -191,15 +159,12 @@ schedule.scheduleJob('* 30 21 * * 0-4,6', function(){
     case 4: game = "Mario Kart";
       break;
   }
-  client.user.setGame(game + " in her bed");
+  client.user.setGame(game);
 });
-
 schedule.scheduleJob('* * 0 * * *', function(){
-  client.user.setGame("some music while she sleeps");
+  client.user.setGame("some music");
 });
-
-// Friday beer pong!
-schedule.scheduleJob('* 30 21 * * 5', function(){
+schedule.scheduleJob('* * 22 * * 5', function(){
   client.user.setGame("beer pong at Cooper's house");
 });
 
@@ -225,18 +190,20 @@ fs.readdir("./events/", (error, files) => {     // read filesi n dir
 client.on('message', message => {
 	if(message.author.bot) return;   // make sure a human asked for this
 
-  // COMMAND HANDLING
-	let command = message.content.split(" ")[0];
-	command = command.slice(config.prefix.length);   // what command?
-	let args = message.content.split(" ").slice(1);  // we want to get rid of the actual command, which is not an argument for itself
+  if(message.charAt(0) == "!") {
+    // COMMAND HANDLING
+  	let command = message.content.split(" ")[0];
+  	command = command.slice(config.prefix.length);   // what command?
+  	let args = message.content.split(" ").slice(1);  // we want to get rid of the actual command, which is not an argument for itself
 
-	try{
-		let commandFile = require('./commands/'+command+'.js');
-		commandFile.run(client, message, args);
-	}catch(err)
-	{
-		console.error(err);
-	}
+  	try {
+  		let commandFile = require('./commands/'+command+'.js');
+  		commandFile.run(client, message, args);
+  	}
+    catch(err) {
+  		console.error(err);
+  	}
+  }
 });
 
 client.login(config.token);
