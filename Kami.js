@@ -98,14 +98,6 @@ client.on('ready', async () => {
   });
 });
 
-// SQL query to avoid timeout
-schedule.scheduleJob('* * 0,12 * * 1-7', function(){
- console.log("Pinged sql server");
- db.query("SELECT * FROM users", function(error, results, fields) {
-   if(error) { console.log(error); }
- });
-});
-
 // weekend
 schedule.scheduleJob('* * 10 * * 6-7', function(){
  client.user.setGame("some piano to relax");
