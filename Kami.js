@@ -190,7 +190,7 @@ fs.readdir("./events/", (error, files) => {     // read filesi n dir
 client.on('message', message => {
 	if(message.author.bot) return;   // make sure a human asked for this
 
-  if(message.charAt(0) == "!") {
+  if(message.content.charAt(0) == "!") {
     // COMMAND HANDLING
   	let command = message.content.split(" ")[0];
   	command = command.slice(config.prefix.length);   // what command?
