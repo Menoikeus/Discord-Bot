@@ -1,105 +1,112 @@
-const path = require('path');
-const appDir = path.dirname(require.main.filename);
-const db = require(appDir + "/mysql.js");
-const lolClient = require(appDir + "/lolapi.js");
+const lolapi = require("../../inhouse/lolapi.js");
+const mongodb = require("../../mongodb/mongodb.js");
+const redirector = require("../../mongodb/redirector.js");
+var db;
 
-function getOnly(obj) {
-    for (var a in obj) return a;
-}
+exports.run = async (client, message, args) => {
+  try {
+    db = await mongodb.getDb();
+    directoryid = await redirector.getDirectoryId(db, message.member.guild);
 
-exports.run = (client, message, args) => {
-  var name = args.join(" ");
-  console.log("Trying to insert player " + name);
+    var name = args.join(" ");
+    console.log("Trying to insert player " + name);
 
-  db.query("SELECT * FROM inhouse_league_players WHERE userid="+message.member.user.id, function(error, results, fields) {
-    if(error) {
-      console.log(error);
-    }
-		else if(results.length == 0)
-		{
-      lolClient.Summoner.getByName(name, function(error, data){
-        if(error) {
-          message.reply("that summoner name does not exist!");
-        }
-        else {
-          summoner = data[name.replace(/\s+/g, '').toLowerCase()];
+    // Get directory and inhouse accounts
+    var user = await db.db(directoryid).collection("users").find({ userid: message.member.user.id }).toArray();
+    var inhouse_user = await db.db(directoryid).collection("inhouse_players").find({ userid: message.member.user.id }).toArray();
+    if(inhouse_user.length == 0) {
+      try {
+        var summoner = await lolapi.Summoner.gettingByName(name);
 
-          // find league
+        // See if this summoner has already been registered
+        var summoner_in_db = await db.db(directoryid).collection("inhouse_players").find({ leagueid: summoner.id }).toArray();
+        if(summoner_in_db.length == 0) {
+          var leagues = await lolapi.League.gettingPositionsForSummonerId(summoner.id);
+
           var info;
           var rank = -1;
-          lolClient.getLeagueData(summoner.id, function(error, rank_data) {
-            if(error) {
-              rank = 2;
-              info = {
-                "userid"	    : message.member.user.id,
-                "leaguename"  : summoner.name,
-                "leagueid"    : summoner.id,
-                "elo"         : rank
-              }
+          if(leagues.length == 0) {
+            rank = 2;
+            info = {
+              "userid"	    : user[0].userid,
+              "leaguename"  : summoner.name,
+              "leagueid"    : summoner.id,
+              "elo"         : rank
             }
-            else {
-              // get highest rank
-              for(key in rank_data[summoner.id])
+          }
+          else {
+            // Get highest rank
+            for(key in leagues) {
+              var tempRank;
+              switch(leagues[key].tier)
               {
-                console.log(rank_data[summoner.id][key].queue);
-
-                var tempRank;
-                switch(rank_data[summoner.id][key].tier)
-                {
-                  case "BRONZE"     : tempRank = 1;
-                    break;
-                  case "SILVER"     : tempRank = 2;
-                    break;
-                  case "GOLD"       : tempRank = 3;
-                    break;
-                  case "PLATINUM"   : tempRank = 4;
-                    break;
-                  case "DIAMOND"    : tempRank = 5;
-                    break;
-                  case "MASTER"     :
-                  case "CHALLENGER" : tempRank = 6;
-                    break;
-                  default           : tempRank = -1;
-                }
-                rank = tempRank > rank ? tempRank : rank;
+                case "BRONZE"     : tempRank = 1;
+                  break;
+                case "SILVER"     : tempRank = 2;
+                  break;
+                case "GOLD"       : tempRank = 3;
+                  break;
+                case "PLATINUM"   : tempRank = 4;
+                  break;
+                case "DIAMOND"    : tempRank = 5;
+                  break;
+                case "MASTER"     :
+                case "CHALLENGER" : tempRank = 6;
+                  break;
+                default           : tempRank = -1;
               }
-
-              info = {
-                "userid"	    : message.member.user.id,
-                "leaguename"  : summoner.name,
-                "leagueid"    : summoner.id,
-                "elo"         : rank
-              }
+              rank = tempRank > rank ? tempRank : rank;
             }
+            info = {
+              "userid"	      : user[0].userid,
+              "leaguename"  : summoner.name,
+              "leagueid"    : summoner.id,
+              "elo"         : rank
+            }
+          }
 
-            console.log(info);
-            db.query("INSERT INTO inhouse_league_players SET ?", info, function(error) {
-      				if(error) { console.log(error) }
-            });
-
-            // latest season stuff
-            db.query("SELECT * FROM inhouse_league_seasons", function(error, results, fields) {
-              if(error) { console.log(error); }
-              else {
-                season_info = {
-                  "userid"	    : message.member.user.id
-                }
-                db.query("INSERT INTO inhouse_league_season"+results[results.length-1].seasonnumber+"_data SET ?", season_info, function(error) {
-          				if(error) { console.log(error) }
-                });
-              }
-            });
-
-
+          db.db(directoryid).collection("inhouse_players").insertOne(info).then( () => {
             message.reply("I've successfully added your account " + name + " with rank " + rank);
           });
-
         }
-      });
-		}
-		else {
-			message.reply("you already have a profile!");
-		}
-  });
-
+        else {
+          message.reply("the summoner " + summoner.name + " is already tied to an account!");
+        }
+      }
+      catch(err) {
+        // See if the error occurred because the summoner doesn't exist
+        // Then throw the error
+        if(err.statusCode == 404) {
+            console.log("lolapi error " + err.statusCode + ": Summoner not found");
+            message.reply("that summoner name does not exist!");
+        }
+        throw err;
+      }
+    }
+    else {
+      message.reply("you already have a profile!");
+    }
+  }
+  catch(err) {
+    // Error catching for league api
+    switch(err.statusCode) {
+      case 400: console.log("lolapi error " + err.statusCode + ": Bad Request");
+        message.reply("I don't know why, but something broke.");
+        break;
+      case 404:
+        break;
+      case 429: console.log("lolapi error " + err.statusCode + ": Too many requests");
+        message.reply("there's been too many requests! Please try again in a moment.");
+        break;
+      case 500:
+      case 502:
+      case 503:
+      case 504:
+        console.log("lolapi error " + err.statusCode + ": Server unreachable");
+        message.reply("Riot's servers seem to be unreachable right now.");
+        break;
+      default:
+        console.log(err);
+    }
+  }
 }
