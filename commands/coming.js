@@ -1,4 +1,4 @@
-var fs = require('fs');
+const fs = require('fs');
 
 var lastListing = {};
 var lastComing;
@@ -8,7 +8,7 @@ exports.run = (client, message, args) => {
 
   if(fs.existsSync("./occasions/"+args[0]+"_occasion.json"))
 	{
-		var event = require("../occasions/"+args[0]+"_occasion.json");
+		const event = require("../occasions/"+args[0]+"_occasion.json");
 
     fs.readFile('./occasions/attendance/'+args[0]+'_attendees.txt', 'utf8', function(err, read_attendees) {
     fs.readFile('./occasions/attendance/'+args[0]+'_cants.txt', 'utf8', function(err, read_cants) {
@@ -55,8 +55,8 @@ exports.run = (client, message, args) => {
         }
       }
       else {
-        var cants_list = cants.join("\n");
-        var embed = {
+        const cants_list = cants.join("\n");
+        const embed = {
           "title": "Attendees of the " + event.name,
           "description": event.description,
           "color": 612041,
@@ -80,7 +80,7 @@ exports.run = (client, message, args) => {
           ]
         }
 
-        var numId = parseInt(args[0]);
+        const numId = parseInt(args[0]);
         if(lastListing[numId] != null)
       	{
       		lastListing[numId].delete();
@@ -92,8 +92,8 @@ exports.run = (client, message, args) => {
 
       if(stateChange == 1)
       {
-        var attendees_list = attendees.join("\n");
-        var cants_list = cants.join("\n");
+        const attendees_list = attendees.join("\n");
+        const cants_list = cants.join("\n");
         fs.writeFile("./occasions/attendance/"+args[0]+"_attendees.txt", attendees_list, function(err) {
           if(err) console.log(err);
           console.log("File saved");
@@ -125,11 +125,11 @@ exports.run = (client, message, args) => {
         {
           for(var j = i; j < data.length; j++)
           {
-            var date1 = data[i].date.split("-");
-            var date2 = data[j].date.split("-");
+            const date1 = data[i].date.split("-");
+            const date2 = data[j].date.split("-");
             if(new Date(date2[0], date2[1], date2[2]) < new Date(date2[0], date2[1], date2[2]))
             {
-              var temp = data[j];
+              const temp = data[j];
               data[i] = data[j];
               data[j] = temp;
             }
@@ -138,7 +138,7 @@ exports.run = (client, message, args) => {
 
         var fieldlist = [];
         var count = 0, events_registered = 0;
-        var current_date = new Date();
+        const current_date = new Date();
         while(count < data.length && events_registered < 3)
         {
           var date = data[count].date.split("-");
@@ -157,7 +157,7 @@ exports.run = (client, message, args) => {
           count++;
         }
 
-        var embed = {
+        const embed = {
           "title": "Upcoming events",
           "color": 612041,
           "footer": {

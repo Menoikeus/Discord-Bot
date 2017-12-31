@@ -45,7 +45,7 @@ async function wordPicW(word, size, font, color)
 var lastMessage = {};
 exports.run = async (client, message, args) => {
     db = await mongodb.getDb();
-    directoryid = await redirector.getDirectoryId(db, message.member.guild);
+    const directoryid = await redirector.getDirectoryId(db, message.member.guild);
 
     // if there are arguments, pass this command to the actual commands
     if(args != null && args.length > 0)
@@ -61,7 +61,7 @@ exports.run = async (client, message, args) => {
     }
 
     // query for the user
-    var user = await db.db(directoryid).collection("users").find({ userid: message.member.user.id }).toArray();
+    const user = await db.db(directoryid).collection("users").find({ userid: message.member.user.id }).toArray();
     // take in the profile placard
     var placard = await Jimp.read('./profile/placard.png/');
 
@@ -82,7 +82,7 @@ exports.run = async (client, message, args) => {
     placard = bgImage;
 
     // user avatar or none?
-    var avatarPath;
+    const avatarPath;
     if(message.member.user.avatarURL == null) {
       avatarPath = './profile/avatar_default.png/';
     }
@@ -97,7 +97,7 @@ exports.run = async (client, message, args) => {
     placard.composite(avatar,59,58);
 
     // load font
-    var font = await Jimp.loadFont("./profile/fonts/font.fnt");
+    const font = await Jimp.loadFont("./profile/fonts/font.fnt");
     var textPlacard = await new Jimp(500, 225);
     var nameText;
 
@@ -114,21 +114,21 @@ exports.run = async (client, message, args) => {
     }
 
     // create exp and level text
-    var expText = await wordPic(user[0].exp + " ", 24, font);
+    const expText = await wordPic(user[0].exp + " ", 24, font);
     textPlacard.composite(expText, 435 - expText.bitmap.width,138);
-    var expWordText = await wordPic("exp", 15, font);
-    var expWordTextOffset = (expText.bitmap.width/2+expWordText.bitmap.width/2) > expWordText.bitmap.width ?
+    const expWordText = await wordPic("exp", 15, font);
+    const expWordTextOffset = (expText.bitmap.width/2+expWordText.bitmap.width/2) > expWordText.bitmap.width ?
                             (expText.bitmap.width/2+expWordText.bitmap.width/2) :
                             expWordText.bitmap.width;
     textPlacard.composite(expWordText, 435 - expWordTextOffset, 120);
 
-    var levelOffset = (expWordText.bitmap.width > expText.bitmap.width ? expWordText.bitmap.width : expText.bitmap.width);
-    var levelText = await wordPic(user[0].level + " ", 40, font);
+    const levelOffset = (expWordText.bitmap.width > expText.bitmap.width ? expWordText.bitmap.width : expText.bitmap.width);
+    const levelText = await wordPic(user[0].level + " ", 40, font);
     textPlacard.composite(levelText, 435 - (levelOffset +levelText.bitmap.width + 15),120);
-    var levelWordText = await wordPic("level", 15, font);
+    const levelWordText = await wordPic("level", 15, font);
     textPlacard.composite(levelWordText, 435 - (levelOffset + levelWordText.bitmap.width + levelText.bitmap.width + 20),120);
 
-    roleText = await wordPicW(message.member.highestRole.name,85,font,"0x" + message.member.highestRole.hexColor.slice(1).toUpperCase());
+    const roleText = await wordPicW(message.member.highestRole.name,85,font,"0x" + message.member.highestRole.hexColor.slice(1).toUpperCase());
     textPlacard.composite(roleText,158,115);
 
     // place text

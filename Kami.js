@@ -21,14 +21,14 @@ client.on('ready', async () => {
 
     var servers = await db.db("kami_db").collection("servers").find({ serverid: guild.id }).toArray();
     if (servers.length == 0) {
-      var server = {
+      const server = {
         servername: guild.name,
         serverid: guild.id,
         directoryid: guild.id
       }
-      var serverObj = await db.db("kami_db").collection("servers").insertOne(server);
+      const serverObj = await db.db("kami_db").collection("servers").insertOne(server);
 
-      var directory_info = {
+      const directory_info = {
         password: "password",
         associated_servers: [{
           $ref: "servers",
@@ -46,15 +46,15 @@ client.on('ready', async () => {
     }
 
     guild.members.forEach(async function(member) {
-      console.log("Trying to insert player " + member.user.username);
-      var userObj = {
+      console.log("Trying to insert user " + member.user.username);
+      const userObj = {
         "username" : member.user.username,
         "userid"	 : member.user.id,
     	  "level"		 : 0,
     	  "exp"      : 0
       }
 
-      var users = await db.db(directoryid).collection("users").find({ "userid": member.user.id }).toArray();
+      const users = await db.db(directoryid).collection("users").find({ "userid": member.user.id }).toArray();
       if (users.length == 0) {
           db.db(directoryid).collection("users").insertOne(userObj);
           console.log(member.user.username + " inserted");
@@ -70,8 +70,8 @@ client.on('ready', async () => {
   // level up stuff
   schedule.scheduleJob('*/2 * * * *', async function(){
     client.guilds.forEach(async function(guild) {
-      servers = await db.db("kami_db").collection("servers").find({ serverid: guild.id }).toArray();
-      directoryid = servers[0].directoryid;
+      const servers = await db.db("kami_db").collection("servers").find({ serverid: guild.id }).toArray();
+      const directoryid = servers[0].directoryid;
 
       await guild.channels.forEach(function(channel) {
         if(channel.id != guild.afkChannelID && channel.type == "voice") {
@@ -112,7 +112,7 @@ schedule.scheduleJob('* * 15 * * 1-5', function(){
   client.user.setGame("tennis with her friends");
 });
 schedule.scheduleJob('* * 17 * * *', function(){
-  var foodChoice = Math.floor(Math.random() * 4);
+  const foodChoice = Math.floor(Math.random() * 4);
   var food;
   switch(foodChoice)
   {
@@ -128,7 +128,7 @@ schedule.scheduleJob('* * 17 * * *', function(){
   client.user.setGame("a movie while eating " + food);
 });
 schedule.scheduleJob('* * 18 * * *', function(){
-  var gameChoice = Math.floor(Math.random() * 4);
+  const gameChoice = Math.floor(Math.random() * 4);
   var game;
   switch(gameChoice)
   {
@@ -144,7 +144,7 @@ schedule.scheduleJob('* * 18 * * *', function(){
   client.user.setGame(game);
 });
 schedule.scheduleJob('* * 21 * * *', function(){
-  var gameChoice = Math.floor(Math.random() * 5);
+  const gameChoice = Math.floor(Math.random() * 5);
   var game;
   switch(gameChoice)
   {
@@ -205,5 +205,4 @@ client.on('message', message => {
   	}
   }
 });
-
 client.login(config.token);
