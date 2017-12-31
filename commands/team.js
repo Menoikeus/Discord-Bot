@@ -4,8 +4,8 @@ exports.run = (client, message, args) => {
 	const teamMembers = args;
 
 	// two teams, and we need max team sizes
-	const blueMax = Math.ceil((teamMembers.length)/2.);
-	const redMax = Math.ceil((teamMembers.length)/2.);
+	var blueMax = Math.ceil((teamMembers.length)/2.);
+	var redMax = Math.ceil((teamMembers.length)/2.);
 
 	var blue = [];
 	var red = [];

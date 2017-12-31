@@ -138,11 +138,12 @@ exports.run = (client, message, args) => {
 
         var fieldlist = [];
         var count = 0, events_registered = 0;
-        const current_date = new Date();
+        const c_date = new Date();
+        var current_date = new Date(c_date.getFullYear(), c_date.getMonth(), c_date.getDate());
         while(count < data.length && events_registered < 3)
         {
           var date = data[count].date.split("-");
-          var current_date = new Date(current_date.getFullYear(), current_date.getMonth(), current_date.getDate());
+
           if(!(current_date > new Date(date[0], date[1]-1, date[2])))
           {
 

@@ -82,7 +82,7 @@ exports.run = async (client, message, args) => {
     placard = bgImage;
 
     // user avatar or none?
-    const avatarPath;
+    var avatarPath;
     if(message.member.user.avatarURL == null) {
       avatarPath = './profile/avatar_default.png/';
     }
