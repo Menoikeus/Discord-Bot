@@ -42,30 +42,26 @@ exports.run = async (client, message, args) => {
                 done      : false
               }
 
-
               await db.db(directoryid).collection("inhouse_matches").insertOne(match_data);
               message.channel.send("A new inhouse match has begun");
 
               var players_in_league = [];
               var checker = schedule.scheduleJob('*/30 * * * * *', async function() {
-                console.log("CHECKING");
+                console.log("Checking status of game " + game.gameId + " for server " + directoryid);
                 try {
                   const finished_game = await lolapi.Match.gettingById(game.gameId);
 
                   var participant_stats = [];
                   var participant_userids = [];
-                  console.log("1");
                   for(i in players_in_league) {
-                    console.log("2");
                     const championid = players_in_league[i].championid;
                     const teamid = players_in_league[i].teamid;
                     for(j in finished_game.participants) {
-                      console.log("3");
                       if(championid == finished_game.participants[j].championId && teamid == finished_game.participants[j].teamId) {
-                        console.log("4");
                         await participant_stats.push({
                           userid        : players_in_league[i].userid,
-                          championId    : championid,
+                          championid    : championid,
+                          teamid        : teamid,
                           official_data : finished_game.participants[j]
                         });
                         await participant_userids.push(players_in_league[i].userid);
@@ -73,18 +69,10 @@ exports.run = async (client, message, args) => {
                     }
                   }
 
-                  console.log(finished_game);
-                  console.log(participant_stats);
-                  console.log(players_in_league);
-
                   const winners = finished_game.teams[0].win == "Fail" ? 200 : 100;
-                  console.log(await db.db(directoryid).collection("inhouse_matches").find({ matchid: game.gameId }));
-                  console.log("H");
-                  console.log(game.gameId);
-                  console.log(finished_game.gameId);
-                  console.log(game);
+                  const query = finished_game.gameId + "";
                   await db.db(directoryid).collection("inhouse_matches").update(
-                    { matchid: finished_game.gameId },
+                    { matchid: query },
                     { $set:
                       {
                         players       :  participant_stats,
@@ -101,12 +89,7 @@ exports.run = async (client, message, args) => {
                   if(err.hasOwnProperty('statusCode') && err.statusCode == 404) {
                     try {
                       const ongoing_game = await lolapi.Spectator.gettingActiveGame(player[0].leagueid);
-                      console.log(directoryid);
-                      //directoryid = await redirector.getDirectoryId(db, message.member.guild);
                       const inhouse_players = await db.db(directoryid).collection("inhouse_players").find({}).toArray();
-
-                      console.log(ongoing_game);
-                      console.log(inhouse_players);
 
                       players_in_league = [];
                       // Update current inhouse league players in game
@@ -123,7 +106,6 @@ exports.run = async (client, message, args) => {
                           }
                         }
                       }
-                      console.log(players_in_league);
                     }
                     catch(err) {
                       // If the game looks like it hasn't finished, AND the summoner is no longer player in a game,
