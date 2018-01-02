@@ -26,7 +26,7 @@ exports.run = async (client, message, args) => {
           var info;
           var rank = -1;
           if(leagues.length == 0) {
-            rank = 2;
+            rank = 2000;
             info = {
               "userid"	    : user[0].userid,
               "leaguename"  : summoner.name,
@@ -38,25 +38,26 @@ exports.run = async (client, message, args) => {
             // Get highest rank
             for(key in leagues) {
               var tempRank;
-              switch(leagues[key].tier)
-              {
-                case "BRONZE"     : tempRank = 1;
+              switch(leagues[key].tier) {
+                case "BRONZE"     : tempRank = 1000;
                   break;
-                case "SILVER"     : tempRank = 2;
+                case "SILVER"     : tempRank = 2000;
                   break;
-                case "GOLD"       : tempRank = 3;
+                case "GOLD"       : tempRank = 3000;
                   break;
-                case "PLATINUM"   : tempRank = 4;
+                case "PLATINUM"   : tempRank = 4000;
                   break;
-                case "DIAMOND"    : tempRank = 5;
+                case "DIAMOND"    : tempRank = 5000;
                   break;
                 case "MASTER"     :
-                case "CHALLENGER" : tempRank = 6;
+                case "CHALLENGER" : tempRank = 6000;
                   break;
                 default           : tempRank = -1;
               }
               rank = tempRank > rank ? tempRank : rank;
             }
+
+            rank = rank == -1 ? 2000 : rank;
             info = {
               "userid"	    : user[0].userid,
               "leaguename"  : summoner.name,

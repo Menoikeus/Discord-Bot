@@ -29,7 +29,8 @@ client.on('ready', async () => {
       const serverObj = await db.db("kami_db").collection("servers").insertOne(server);
 
       const directory_info = {
-        password: "password",
+        info_type : "directory_info",
+        password  : "password",
         associated_servers: [{
           $ref: "servers",
           $id:   serverObj.insertedId,
@@ -37,6 +38,12 @@ client.on('ready', async () => {
         }]
       }
       await db.db(guild.id).collection("info").insertOne(directory_info);
+      const inhouse_info = {
+        info_type           : "inhouse_info",
+        volatility_constant : 400,
+        minimum_players     : 4
+      }
+      await db.db(guild.id).collection("info").insertOne(inhouse_info);
 
       directoryid = guild.id;
       console.log('New server ID: ' + guild.id + ' added');
