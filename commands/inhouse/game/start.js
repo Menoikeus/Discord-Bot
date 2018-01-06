@@ -243,19 +243,23 @@ exports.run = async (client, message, args) => {
     if(err.hasOwnProperty('statusCode')) {
       switch(err.statusCode) {
         case 400: console.log("lolapi error " + err.statusCode + ": Bad Request");
-          message.reply("I don't know why, but something broke.");
+          message.channel.send("I don't know why, but something broke.");
           break;
-        case 404:
+        case 403: console.log("lolapi error " + err.statusCode + ": Forbidden");
+          message.channel.send("Looks like the api key currently isn't working. Please tell the dev.");
+          break;
+        case 404: console.log("lolapi error " + err.statusCode + ": Game not found");
+          message.channel.send("You're not in a game right now!");
           break;
         case 429: console.log("lolapi error " + err.statusCode + ": Too many requests");
-          message.reply("there's been too many requests! Please try again in a moment.");
+          message.channel.send("There's been too many requests! Please try again in a moment.");
           break;
         case 500:
         case 502:
         case 503:
         case 504:
           console.log("lolapi error " + err.statusCode + ": Server unreachable");
-          message.reply("Riot's servers seem to be unreachable right now.");
+          message.channel.send("Riot's servers seem to be unreachable right now.");
           break;
         default:
           console.log(err);
