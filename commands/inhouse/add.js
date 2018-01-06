@@ -38,7 +38,7 @@ exports.run = async (client, message, args) => {
     }
     else {
       // Get inhouse info
-      const inhouse_info = await db.db(directoryid).collection("info").find({ info_type: "inhouse_info" }).toArray();
+      const inhouse_info = await db.db(directoryid).collection("info").findOne({ info_type: "inhouse_info" });
 
       var rank = -1;
       // See if everyone has the same starting rank (check this first so we don't make unnecessary api calls

@@ -7,19 +7,19 @@ exports.run = async (client, message, args) => {
   db = await mongodb.getDb();
   const directoryid = await redirector.getDirectoryId(db, message.member.guild);
 
-  const inhouse_info = await db.db(directoryid).collection("info").find({ info_type: "inhouse_info" }).toArray();
+  const inhouse_info = await db.db(directoryid).collection("info").findOne({ info_type: "inhouse_info" });
   var vars = [];
   var values = [];
-  for(key in inhouse_info[0]) {
+  for(key in inhouse_info) {
     if(key.substring(0,2) == "b_") {
       vars.push(key);
-      values.push(inhouse_info[0][key]);
+      values.push(inhouse_info[key]);
     }
   }
   if(!(args.length == 1)) return message.channel.send("I need a variable name! Here are the variables:" + await table_maker.create_table(vars, values, 7, 30));
-  if(inhouse_info[0][args[0]] === undefined) return message.channel.send("That variable does not exist!");
+  if(inhouse_info[args[0]] === undefined) return message.channel.send("That variable does not exist!");
 
-  const current_value = inhouse_info[0][args[0]];
+  const current_value = inhouse_info[args[0]];
   await db.db(directoryid).collection("info").update(
     { info_type: "inhouse_info" },
     { $set:
@@ -29,5 +29,5 @@ exports.run = async (client, message, args) => {
     }
   );
 
-  message.channel.send("Successfully changed the value of " + args[0] + " from " + inhouse_info[0][args[0]] + " to " + !current_value);
+  message.channel.send("Successfully changed the value of " + args[0] + " from " + inhouse_info[args[0]] + " to " + !current_value);
 }
