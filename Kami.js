@@ -1,13 +1,18 @@
-const Discord = require('discord.js');    // discord js api
-const client = new Discord.Client();      // discord client
-const config = require('./config.json');  // config json (for security)
-const fs = require("fs");                 // ???
-const schedule = require('node-schedule');
+const Discord = require('discord.js');     // discord js api
+const client = new Discord.Client();       // discord client
+const config = require('./config.json');   // config json (for security)
+const fs = require("fs");                  // Filesystem
+const schedule = require('node-schedule'); // Scheduling
 
-// Mongoose
+// Events
+const onGuildCreate = require("./events/guildCreate");
+
+// Mongodb
 const mongodb = require("./mongodb/mongodb.js");
 mongodb.connect();
 var db;
+
+client.login(config.token);
 
 // in the beginning
 client.on('ready', async () => {
@@ -17,59 +22,7 @@ client.on('ready', async () => {
   // ADDING ANY UNADDED GUILD members
   // go through guild members and check against sql server
   await client.guilds.forEach(async function(guild) {
-    var directoryid;
-
-    var servers = await db.db("kami_db").collection("servers").find({ serverid: guild.id }).toArray();
-    if (servers.length == 0) {
-      const server = {
-        servername: guild.name,
-        serverid: guild.id,
-        directoryid: guild.id
-      }
-      const serverObj = await db.db("kami_db").collection("servers").insertOne(server);
-
-      const directory_info = {
-        info_type : "directory_info",
-        password  : "password",
-        associated_servers: [{
-          $ref: "servers",
-          $id:   serverObj.insertedId,
-          $db:   "kami_db"
-        }]
-      }
-      await db.db(guild.id).collection("info").insertOne(directory_info);
-      const inhouse_info = {
-        info_type           : "inhouse_info",
-        volatility_constant : 400,
-        minimum_players     : 4
-      }
-      await db.db(guild.id).collection("info").insertOne(inhouse_info);
-
-      directoryid = guild.id;
-      console.log('New server ID: ' + guild.id + ' added');
-    }
-    else {
-      directoryid = servers[0].directoryid;
-    }
-
-    guild.members.forEach(async function(member) {
-      console.log("Trying to insert user " + member.user.username);
-      const userObj = {
-        "username" : member.user.username,
-        "userid"	 : member.user.id,
-    	  "level"		 : 0,
-    	  "exp"      : 0
-      }
-
-      const users = await db.db(directoryid).collection("users").find({ "userid": member.user.id }).toArray();
-      if (users.length == 0) {
-          db.db(directoryid).collection("users").insertOne(userObj);
-          console.log(member.user.username + " inserted");
-      }
-      else {
-        console.log("Already there! ID: " + member.user.id + " " + users[0].userid);
-      }
-    });
+    await onGuildCreate.run(client, guild);
   });
   console.log('I am ready!');
 
@@ -208,8 +161,12 @@ client.on('message', message => {
   		commandFile.run(client, message, args);
   	}
     catch(err) {
-  		console.error(err);
+      if(err.hasOwnProperty("code") && err.code == "MODULE_NOT_FOUND") {
+    		console.error("No command with name " + command);
+      }
+      else {
+        console.log(err);
+      }
   	}
   }
 });
-client.login(config.token);
