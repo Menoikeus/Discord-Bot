@@ -4,13 +4,9 @@ var db;
 
 exports.run = async (client, member) => {
 	db = await mongodb.getDb();
-	directoryid = await redirector.getDirectoryId(db, member.guild);
+	const directoryid = await redirector.getDirectoryId(db, member.guild);
 
-	member.guild.defaultChannel.send('Welcome to the server, ' + member + '!');
-
-	console.log("Trying to insert player " + member.user.username);
   var userObj = {
-    "username"	: member.user.username,
     "userid"		: member.user.id,
 		"level"			: 0,
 		"exp"				: 0
@@ -18,6 +14,10 @@ exports.run = async (client, member) => {
 
 	var users = await db.db(directoryid).collection("users").find({ "userid": member.user.id }).toArray();
 	if (users.length == 0) {
-		db.db(directoryid).collection("users").insertOne(userObj);
+		await db.db(directoryid).collection("users").insertOne(userObj);
+		console.log("User " + member.user.username + " has been added to directory " + directoryid);
+	}
+	else {
+		console.log("User " + member.user.username + " is already in directory " + directoryid);
 	}
 };
