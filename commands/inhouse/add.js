@@ -19,13 +19,13 @@ exports.run = async (client, message, args) => {
     const summoner = await lolapi.Summoner.gettingByName(name);
     // See if this summoner has already been linked
     const summoner_in_db = await db.db(directoryid).collection("inhouse_players").find({ leagueid: summoner.id }).toArray();
-    if(summoner_in_db.length != 0) message.channel.send("The summoner " + summoner.name + " is already tied to an account!");
+    if(summoner_in_db.length != 0) return message.channel.send("The summoner " + summoner.name + " is already tied to an account!");
 
     // Get inhouse user
     const inhouse_user = await db.db(directoryid).collection("inhouse_players").find({ userid: message.member.user.id }).toArray();
     if(inhouse_user.length != 0) {
       // See if they have a summoner linked already
-      if(inhouse_user.leagueid === undefined) {
+      if(inhouse_user[0].leagueid === undefined) {
         await db.db(directoryid).collection("inhouse_players").update(
           { userid: message.member.user.id },
           { $set: { leagueid: summoner.id } }
@@ -42,8 +42,8 @@ exports.run = async (client, message, args) => {
 
       var rank = -1;
       // See if everyone has the same starting rank (check this first so we don't make unnecessary api calls
-      if(inhouse_info.same_starting_rank) {
-        rank = inhouse_info.default_elo;
+      if(inhouse_info.b_same_starting_rank) {
+        rank = inhouse_info.i_default_elo;
       }
       else {
         // Otherwise pull rank from the league servers
@@ -70,7 +70,7 @@ exports.run = async (client, message, args) => {
           }
           rank = tempRank > rank ? tempRank : rank;
         }
-        rank = rank == -1 ? inhouse_info.default_elo : rank;
+        rank = rank == -1 ? inhouse_info.i_default_elo : rank;
       }
       const info = {
         "userid"	    : user[0].userid,
