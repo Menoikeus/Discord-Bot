@@ -8,105 +8,102 @@ exports.run = async (client, message, args) => {
     db = await mongodb.getDb();
     const directoryid = await redirector.getDirectoryId(db, message.member.guild);
 
+    // concat name
     const name = args.join(" ");
-    console.log("Trying to insert player " + name);
+    console.log("Trying to insert player " + name + " to inhouse league of directory " + directoryid);
 
-    // Get directory and inhouse accounts
+    // Get directory account
     const user = await db.db(directoryid).collection("users").find({ userid: message.member.user.id }).toArray();
+
+    // Get summoner
+    const summoner = await lolapi.Summoner.gettingByName(name);
+    // See if this summoner has already been linked
+    const summoner_in_db = await db.db(directoryid).collection("inhouse_players").find({ leagueid: summoner.id }).toArray();
+    if(summoner_in_db.length != 0) message.channel.send("The summoner " + summoner.name + " is already tied to an account!");
+
+    // Get inhouse user
     const inhouse_user = await db.db(directoryid).collection("inhouse_players").find({ userid: message.member.user.id }).toArray();
-    if(inhouse_user.length == 0) {
-      try {
-        const summoner = await lolapi.Summoner.gettingByName(name);
-
-        // See if this summoner has already been registered
-        const summoner_in_db = await db.db(directoryid).collection("inhouse_players").find({ leagueid: summoner.id }).toArray();
-        if(summoner_in_db.length == 0) {
-          const leagues = await lolapi.League.gettingPositionsForSummonerId(summoner.id);
-
-          var info;
-          var rank = -1;
-          if(leagues.length == 0) {
-            rank = 2000;
-            info = {
-              "userid"	    : user[0].userid,
-              "leaguename"  : summoner.name,
-              "leagueid"    : summoner.id,
-              "elo"         : rank
-            }
-          }
-          else {
-            // Get highest rank
-            for(key in leagues) {
-              var tempRank;
-              switch(leagues[key].tier) {
-                case "BRONZE"     : tempRank = 1000;
-                  break;
-                case "SILVER"     : tempRank = 2000;
-                  break;
-                case "GOLD"       : tempRank = 3000;
-                  break;
-                case "PLATINUM"   : tempRank = 4000;
-                  break;
-                case "DIAMOND"    : tempRank = 5000;
-                  break;
-                case "MASTER"     :
-                case "CHALLENGER" : tempRank = 6000;
-                  break;
-                default           : tempRank = -1;
-              }
-              rank = tempRank > rank ? tempRank : rank;
-            }
-
-            rank = rank == -1 ? 2000 : rank;
-            info = {
-              "userid"	    : user[0].userid,
-              "leaguename"  : summoner.name,
-              "leagueid"    : summoner.id,
-              "elo"         : rank
-            }
-          }
-
-          db.db(directoryid).collection("inhouse_players").insertOne(info).then( () => {
-            message.reply("I've successfully added your account " + summoner.name + " with rank " + rank);
-          });
-        }
-        else {
-          message.reply("the summoner " + summoner.name + " is already tied to an account!");
-        }
+    if(inhouse_user.length != 0) {
+      // See if they have a summoner linked already
+      if(inhouse_user.leagueid === undefined) {
+        await db.db(directoryid).collection("inhouse_players").update(
+          { userid: message.member.user.id },
+          { $set: { leagueid: summoner.id } }
+        );
+        message.channel.send("I've successfully linked your account with summoner " + summoner.name);
       }
-      catch(err) {
-        // See if the error occurred because the summoner doesn't exist
-        // Then throw the error
-        if(err.hasOwnProperty('statusCode') && err.statusCode == 404) {
-            console.log("lolapi error " + err.statusCode + ": Summoner not found");
-            message.reply("that summoner name does not exist!");
-        }
-        else {
-          console.log(err);
-        }
+      else {
+        message.channel.send("You already have a summoner linked to your account! Either ask an admin to unassign your account, or use !inhouse reassign if your server allows it!");
       }
     }
     else {
-      message.reply("you already have a profile!");
+      // Get inhouse info
+      const inhouse_info = await db.db(directoryid).collection("info").find({ info_type: "inhouse_info" }).toArray();
+
+      var rank = -1;
+      // See if everyone has the same starting rank (check this first so we don't make unnecessary api calls
+      if(inhouse_info.same_starting_rank) {
+        rank = inhouse_info.default_elo;
+      }
+      else {
+        // Otherwise pull rank from the league servers
+        const leagues = await lolapi.League.gettingPositionsForSummonerId(summoner.id);
+
+        // Get highest rank
+        for(key in leagues) {
+          var tempRank;
+          switch(leagues[key].tier) {
+            case "BRONZE"     : tempRank = 1000;
+              break;
+            case "SILVER"     : tempRank = 2000;
+              break;
+            case "GOLD"       : tempRank = 3000;
+              break;
+            case "PLATINUM"   : tempRank = 4000;
+              break;
+            case "DIAMOND"    : tempRank = 5000;
+              break;
+            case "MASTER"     : tempRank
+            case "CHALLENGER" : tempRank = 6000;
+              break;
+            default           : tempRank = -1;
+          }
+          rank = tempRank > rank ? tempRank : rank;
+        }
+        rank = rank == -1 ? inhouse_info.default_elo : rank;
+      }
+      const info = {
+        "userid"	    : user[0].userid,
+        "leagueid"    : summoner.id,
+        "matches"     : [],
+        "elo"         : rank,
+
+      }
+
+      // Insert the player info
+      db.db(directoryid).collection("inhouse_players").insertOne(info).then( () => {
+        message.channel.send("I've successfully created your account with summoner " + summoner.name + " and rank " + rank);
+      });
     }
   }
   catch(err) {
     // Error catching for league api
     switch(err.statusCode) {
       case 400: console.log("lolapi error " + err.statusCode + ": Bad Request");
-        message.reply("I don't know why, but something broke.");
+        message.channel.send("I don't know why, but something broke.");
         break;
-      case 404:
+      case 404: console.log("lolapi error " + err.statusCode + ": Summoner not found");
+        message.channel.send("That summoner name does not exist!");
         break;
       case 429: console.log("lolapi error " + err.statusCode + ": Too many requests");
-        message.reply("there's been too many requests! Please try again in a moment.");
+        message.channel.send("There's been too many requests! Please try again in a moment.");
         break;
       case 500:
       case 502:
       case 503:
       case 504:
         console.log("lolapi error " + err.statusCode + ": Server unreachable");
-        message.reply("Riot's servers seem to be unreachable right now.");
+        message.channel.send("Riot's servers seem to be unreachable right now.");
         break;
       default:
         console.log(err);
