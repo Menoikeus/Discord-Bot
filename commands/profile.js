@@ -50,12 +50,17 @@ exports.run = async (client, message, args) => {
     // if there are arguments, pass this command to the actual commands
     if(args != null && args.length > 0)
     {
-      try{
+      try {
         let commandFile = require('./profile/'+args[0]+'.js');
         commandFile.run(client, message, args.slice(1));
-      }catch(err)
-      {
-        console.error(err);
+      }
+      catch(err) {
+        if(err.hasOwnProperty("code") && err.code == "MODULE_NOT_FOUND") {
+      		console.error("No command with name " + args[0]);
+        }
+        else {
+          console.log(err);
+        }
       }
       return;
     }
@@ -101,15 +106,16 @@ exports.run = async (client, message, args) => {
     var textPlacard = await new Jimp(500, 225);
     var nameText;
 
+    const username = client.users.get(user[0].userid).username;
     // create username graphics based on username size
     // we actually might not need this complexity now
-    if(user[0].username.length >= 12)
+    if(username.length >= 12)
     {
-      nameText = await wordPicW(user[0].username, 257, font);
+      nameText = await wordPicW(username, 257, font);
       textPlacard.composite(nameText, 158,84-nameText.bitmap.height/2);
     }
     else {
-      nameText = await wordPic(user[0].username, 25, font);
+      nameText = await wordPic(username, 25, font);
       textPlacard.composite(nameText, 158,70);
     }
 
@@ -140,13 +146,16 @@ exports.run = async (client, message, args) => {
       if(error) { console.log(error); }
 
       // delete the last profile that the user requested, so as to reduce profile spam
-      if(lastMessage[message.member.user.id] != null) {
-        lastMessage[message.member.user.id].delete();
+      if(lastMessage[message.member.guild.id] == null) {
+        lastMessage[message.member.guild.id] = {};
+      }
+      if(lastMessage[message.member.guild.id][message.member.user.id] != null) {
+        lastMessage[message.member.guild.id][message.member.user.id].delete();
       }
       message.channel.send({
         files:  [{ attachment:  buffa}]
       }).then( mess => {
-				lastMessage[message.member.user.id] = mess;
+				lastMessage[message.member.guild.id][message.member.user.id] = mess;
 				message.delete();
 			});
     });
