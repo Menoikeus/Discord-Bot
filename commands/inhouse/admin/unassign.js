@@ -1,3 +1,4 @@
+const username_util = require("../../../util/username_util.js");
 const mongodb = require("../../../mongodb/mongodb.js");
 const redirector = require("../../../mongodb/redirector.js");
 var db;
@@ -8,7 +9,7 @@ exports.run = async (client, message, args) => {
 
   if(!(args.length > 0)) return message.reply("you need to give me a user's discord username!");
 
-  const username = args.slice(1).join(" ");
+  const username = args.join(" ");
   if(username == "") return message.channel.send("The second argument must be a discord username!");
 
   var userid;
