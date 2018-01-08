@@ -141,6 +141,7 @@ function create_checker(directoryid, inhouse_info, game, player, client, message
           }
         });
       message.channel.send("Inhouse game completed!");
+      game_viewer.run(client, message, [ query ]);
       checker.cancel();
     }
     catch(err) {
