@@ -9,6 +9,7 @@ const onGuildCreate = require("./events/guildCreate");
 
 // Mongodb
 const mongodb = require("./mongodb/mongodb.js");
+const redirector = require("./mongodb/redirector.js");
 mongodb.connect();
 var db;
 
@@ -151,13 +152,17 @@ fs.readdir("./events/", (error, files) => {     // read filesi n dir
 // as we did with events, separate files are used when commands are called
 // doing this, we can organize code better AND we can reload individual commands
 // without restarting the bot
-client.on('message', message => {
+client.on('message', async message => {
 	if(message.author.bot) return;   // make sure a human asked for this
 
-  if(message.content.charAt(0) == "!") {
+  // Get prefix
+  const directoryid = await redirector.getDirectoryId(db, message.member.guild);
+  const prefix = (await db.db(directoryid).collection("info").findOne({ info_type: "directory_info" })).s_prefix;
+
+  if(message.content.substring(0, prefix.length) == prefix) {
     // COMMAND HANDLING
-  	let command = message.content.split(" ")[0];
-  	command = command.slice(config.prefix.length);   // what command?
+  	let command = message.content.split(" +")[0];
+  	command = command.slice(prefix.length);   // what command?
   	let args = message.content.split(" ").slice(1);  // we want to get rid of the actual command, which is not an argument for itself
 
   	try {
