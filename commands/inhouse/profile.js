@@ -4,6 +4,7 @@ const redirector = require("../../mongodb/redirector.js");
 const request = require('request');
 var db;
 
+var lastMessage = {};
 exports.run = async (client, message, args) => {
   db = await mongodb.getDb();
   const directoryid = await redirector.getDirectoryId(db, message.member.guild);
@@ -105,7 +106,20 @@ exports.run = async (client, message, args) => {
     ]
   };
 
-  message.channel.send({ embed });
+  // delete the last profile that the user requested, so as to reduce profile spam
+  if(lastMessage[message.member.guild.id] == null) {
+    lastMessage[message.member.guild.id] = {};
+  }
+  if(lastMessage[message.member.guild.id][message.member.user.id] != null) {
+    lastMessage[message.member.guild.id][message.member.user.id].delete();
+  }
+  message.channel.send({
+    embed
+  }).then( mess => {
+    lastMessage[message.member.guild.id][message.member.user.id] = mess;
+    try{ message.delete(); }
+    catch(err){ "Missing Permissions" }
+  });
 }
 
 function calculate_average_stats(inhouse_matches, userid) {

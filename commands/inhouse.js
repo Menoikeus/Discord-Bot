@@ -2,6 +2,7 @@ const mongodb = require("../mongodb/mongodb.js");
 const redirector = require("../mongodb/redirector.js");
 var db;
 
+var lastMessage = {};
 exports.run = async (client, message, args) => {
   // if there are arguments, pass this command to the actual commands
   if(args != null && args.length > 0)
@@ -67,7 +68,20 @@ exports.run = async (client, message, args) => {
     ]
   };
 
-  message.channel.send({ embed });
+  // delete the last profile that the user requested, so as to reduce profile spam
+  if(lastMessage[message.member.guild.id] == null) {
+    lastMessage[message.member.guild.id] = {};
+  }
+  if(lastMessage[message.member.guild.id][message.member.user.id] != null) {
+    lastMessage[message.member.guild.id][message.member.user.id].delete();
+  }
+  message.channel.send({
+    embed
+  }).then( mess => {
+    lastMessage[message.member.guild.id][message.member.user.id] = mess;
+    try{ message.delete(); }
+    catch(err){ "Missing Permissions" }
+  });
 }
 
 function get_top_players(client, players) {

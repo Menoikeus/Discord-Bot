@@ -1,4 +1,4 @@
-const onGuildMemberAdd = require("../events/guildMemberAdd");
+ const onGuildMemberAdd = require("../events/guildMemberAdd");
 const mongodb = require("../mongodb/mongodb.js");
 const redirector = require("../mongodb/redirector.js");
 var db;

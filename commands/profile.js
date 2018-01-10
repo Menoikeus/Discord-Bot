@@ -156,7 +156,8 @@ exports.run = async (client, message, args) => {
         files:  [{ attachment:  buffa}]
       }).then( mess => {
 				lastMessage[message.member.guild.id][message.member.user.id] = mess;
-				message.delete();
+        try{ message.delete(); }
+        catch(err){ "Missing Permissions" }
 			});
     });
 }
