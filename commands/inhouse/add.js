@@ -10,6 +10,7 @@ exports.run = async (client, message, args) => {
 
     // concat name
     const name = args.join(" ");
+    if(name.trim().length == 0) return message.channel.send("I need a summoner name to link to your account!");
     console.log("Trying to insert player " + name + " to inhouse league of directory " + directoryid);
 
     // Get directory account
