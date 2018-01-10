@@ -161,9 +161,9 @@ client.on('message', async message => {
 
   if(message.content.substring(0, prefix.length) == prefix) {
     // COMMAND HANDLING
-  	let command = message.content.split(" +")[0];
+  	let command = message.content.split(" ")[0];
   	command = command.slice(prefix.length);   // what command?
-  	let args = message.content.split(" ").slice(1);  // we want to get rid of the actual command, which is not an argument for itself
+  	let args = message.content.replace(/\s\s+/g, ' ').split(' ').slice(1);  // we want to get rid of the actual command, which is not an argument for itself
 
   	try {
   		let commandFile = require('./commands/'+command+'.js');
