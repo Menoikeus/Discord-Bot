@@ -28,10 +28,12 @@ exports.run = async (client, guild) => {
 		}
 		await db.db(guild.id).collection("info").insertOne(directory_info);
 		const inhouse_info = {
-			info_type           : "inhouse_info",
+			info_type          	  : "inhouse_info",
+			start_date 						: (new Date()).getTime(),
 			i_volatility_constant : Number(400),
 			i_minimum_players     : Number(5),
 			i_default_elo         : Number(2500),
+			b_anyone_can_reassign : false,
 			b_same_starting_rank  : true
 		}
 		await db.db(guild.id).collection("info").insertOne(inhouse_info);
