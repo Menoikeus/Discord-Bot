@@ -59,7 +59,6 @@ exports.run = async (client, message, args) => {
     "title": "Match " + match.matchid + " on " + match_date.getDate() + "/" + (match_date.getMonth()+1) + "/" + match_date.getFullYear(),
     "description": "Match ended with " + (match.winning_team == 100 ? "Blue" : "Red") + " team victory",
     "color": 16777215,
-    "width": 500,
     "footer": {
       "text": match_date.toString(),
     },

@@ -86,13 +86,9 @@ function create_checker(directoryid, inhouse_info, game, player, client, message
           await db.db(directoryid).collection("inhouse_players").update(
             { userid: winning_players[key].userid },
             { $inc:
-              {
-                elo     :  elo_change
-              },
+              { elo     :  elo_change },
               $push:
-              {
-                matches : String(finished_game.gameId)
-              }
+              { matches : String(finished_game.gameId) }
             }
           );
         }
@@ -114,13 +110,9 @@ function create_checker(directoryid, inhouse_info, game, player, client, message
           await db.db(directoryid).collection("inhouse_players").update(
             { userid: losing_players[key].userid },
             { $inc:
-              {
-                elo:  (-1 * elo_change)
-              },
+              { elo:  (-1 * elo_change) },
               $push:
-              {
-                matches : String(finished_game.gameId)
-              }
+              { matches : String(finished_game.gameId) }
             }
           );
         }
