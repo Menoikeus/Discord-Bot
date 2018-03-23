@@ -1,0 +1,48 @@
+tree1 = node(5, [list: node(6, [list:])])
+#disp(tree1)
+empty-tree = mt
+tree2 = 
+  node(5, [list: 
+      node(6, [list:
+          node(8, [list: ]),
+          node(2, [list: ])]),
+      node(2, [list: ]),
+      node(9, [list: 
+          node(4, [list: ]),
+          node(5, [list: ]),
+          node(6, [list: ]),])])
+#disp(tree2)
+tree3 = 
+  node(5, [list: 
+      node(5, [list:
+          node(5, [list: ]),
+          node(43, [list: ])]),
+      node(2, [list: 
+          node(3, [list: ])]),
+      node(2, [list: 
+          node(5, [list: ]),
+          node(5, [list: ]),
+          node(6, [list: ]),]),
+      node(8, [list: 
+          node(8, [list: ]),
+          node(5, [list: ])])])
+tree5 =
+  node(5, [list: 
+      node(340, [list:
+          node(5, [list: ]),
+          node(43, [list: ])]),
+      node(420, [list: 
+          node(3, [list: ])]),
+      node(23, [list: 
+          node(857, [list: 
+              node(4, [list: ]),
+              node(7, [list: ])]),
+          node(5, [list: ]),
+          node(340, [list: ]),]),
+      node(340, [list: 
+          node(8, [list: ]),
+          node(420, [list: ])]),
+      node(19, [list: 
+          node(8, [list: ]),
+          node(420, [list: 
+              node(74, [list:])])])])

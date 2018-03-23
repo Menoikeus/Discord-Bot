@@ -18,7 +18,7 @@ client.login(config.token);
 // in the beginning
 client.on('ready', async () => {
   db = await mongodb.getDb();
-  client.user.setGame("tennis with her friends");   // bot status
+  client.user.setActivity("tennis with her friends");   // bot status
 
   // ADDING ANY UNADDED GUILD members
   // go through guild members and check against sql server
@@ -64,16 +64,16 @@ client.on('ready', async () => {
 function create_schedule() {
   // Status schedule
   schedule.scheduleJob('* * 10 * * 6-7', function(){
-   client.user.setGame("some piano");
+   client.user.setActivity("some piano");
   });
   schedule.scheduleJob('* * 12 * * 6-7', function(){
-   client.user.setGame("video games");
+   client.user.setActivity("video games");
   });
   schedule.scheduleJob('* * 7 * * 1-5', function(){
-   client.user.setGame("with her cat");
+   client.user.setActivity("with her cat");
   });
   schedule.scheduleJob('* * 15 * * 1-5', function(){
-    client.user.setGame("tennis with her friends");
+    client.user.setActivity("tennis with her friends");
   });
   schedule.scheduleJob('* * 17 * * *', function(){
     const foodChoice = Math.floor(Math.random() * 4);
@@ -89,7 +89,7 @@ function create_schedule() {
       case 3: food = "chicken parmesan";
         break;
     }
-    client.user.setGame("a movie while eating " + food);
+    client.user.setActivity("a movie while eating " + food);
   });
   schedule.scheduleJob('* * 18 * * *', function(){
     const gameChoice = Math.floor(Math.random() * 4);
@@ -105,7 +105,7 @@ function create_schedule() {
       case 3: game = "Melee";
         break;
     }
-    client.user.setGame(game);
+    client.user.setActivity(game);
   });
   schedule.scheduleJob('* * 21 * * *', function(){
     const gameChoice = Math.floor(Math.random() * 5);
@@ -123,13 +123,13 @@ function create_schedule() {
       case 4: game = "Mario Kart";
         break;
     }
-    client.user.setGame(game);
+    client.user.setActivity(game);
   });
   schedule.scheduleJob('* * 0 * * *', function(){
-    client.user.setGame("some music");
+    client.user.setActivity("some music");
   });
   schedule.scheduleJob('* * 22 * * 5', function(){
-    client.user.setGame("beer pong at Cooper's house");
+    client.user.setActivity("beer pong at Cooper's house");
   });
 }
 

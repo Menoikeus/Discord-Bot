@@ -127,7 +127,9 @@ function create_checker(directoryid, inhouse_info, game, player, client, message
         { $set:
           {
             players       :  participant_stats,
+            teams         :  finished_game.teams,
             winning_team  :  winners,
+            length        :  finished_game.gameDuration,
             date          :  current_time,
             done          :  true
           }

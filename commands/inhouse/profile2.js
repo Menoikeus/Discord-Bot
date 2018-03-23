@@ -10,29 +10,23 @@ exports.run = async (client, message, args) => {
   const directoryid = await redirector.getDirectoryId(db, message.member.guild);
 
   // Get inhouse account from db
-  var player = await db.db(directoryid).collection("inhouse_players").find({ userid: message.member.id }).toArray();
-  if(player.length == 0) return message.channel.send("You're not an inhouse player! Use !inhouse add $SUMMONER_NAME to add yourself!");
-  player = player[0];
+  var player = await db.db(directoryid).collection("inhouse_players").findOne({ userid: message.member.id });
+  if(player === undefined) return message.channel.send("You're not an inhouse player! Use !inhouse add $SUMMONER_NAME to add yourself!");
 
-  // Get most recent three matches
-  var recent_matches = player.matches.reverse().slice(0, 3);
-
-  var stats_output;
-  var match_output
-  var image_url;
-  console.log(player.inhouse_stats);
+  var overall_stats;
+  var recent_data;
   // Average data for games
-  if(recent_matches.length == 0) {
+  if(player.matches.length == 0) {
     // No matches = no stats
     stats_output = "There's nothing to see here";
     match_output = "You haven't played any games yet!";
     image_url = "https://i.imgur.com/vfBewGB.png";
   }
-  else if(player.inhouse_stats === undefined || player.inhouse_stats.latest_matchid != recent_matches[0]) {
+  else if(player.inhouse_stats === undefined || player.inhouse_stats.latest_matchid != player.matches[player.matches.length - 1]) {
     // In the event that player stats stored on server are not up to date, run the functions and store the data
-    // Get the match info from the db
-    const all_inhouse_matches = await db.db(directoryid).collection("inhouse_matches").find({ "players.userid": message.member.id }).toArray();
-    const recent_inhouse_matches = all_inhouse_matches.filter(match => recent_matches.includes(match.matchid)).reverse();
+    // Get all matches with the player
+    const all_inhouse_matches = await db.db(directoryid).collection("inhouse_matches").find({ "players.userid": message.member.id }).sort({ date: -1 }).toArray();
+    const recent_inhouse_matches = all_inhouse_matches.slice(0, 3);
 
     // Static data
     const global_inhouse_info = await db.db("kami_db").collection("global_info").findOne({ info_type: "league_api_info" });
@@ -44,29 +38,33 @@ exports.run = async (client, message, args) => {
     }
 
     // Get new data with functions
-    stats_output = calculate_average_stats(all_inhouse_matches, message.member.id);
-    const recent_data = get_recent_data(champion_hash_table, recent_inhouse_matches, message.member.id, global_inhouse_info, client);
+    overall_stats = calculate_average_stats(all_inhouse_matches, message.member.id);
+    recent_data = get_recent_data(champion_hash_table, recent_inhouse_matches, message.member.id, global_inhouse_info, client);
 
-    recent_data.average_stats = stats_output;
-    recent_data.latest_matchid = recent_matches[0];
+    const latest_matchid = recent_data.recent_matches[0].matchid;
     // Push new data to db
     await db.db(directoryid).collection("inhouse_players").update(
       { userid : message.member.id },
       { $set:
-        { inhouse_stats  : recent_data }
+        {
+          inhouse_stats: {
+            overall_stats  : overall_stats,
+            recent_data    : recent_data,
+            latest_matchid : latest_matchid
+          }
+        }
       }
     );
-
-    // Set output strings
-    match_output = recent_data.recent_matches;
-    image_url = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/champion/" + recent_data.last_champion + ".png";
   }
   else {
     // Pull stored information
-    stats_output = player.inhouse_stats.average_stats;
-    match_output = player.inhouse_stats.recent_matches;
-    image_url = "http://ddragon.leagueoflegends.com/cdn/6.24.1/img/champion/" + player.inhouse_stats.last_champion + ".png";
+    overall_stats = player.inhouse_stats.overall_stats;
+    recent_data = player.inhouse_stats.recent_data;
   }
+
+  // Finish output
+  const image_url = client.users.get(player.userid).avatarURL;
+  const final_outputs = format_output(overall_stats, recent_data);
 
   // create embed
   const embed = {
@@ -96,11 +94,11 @@ exports.run = async (client, message, args) => {
       },
       {
         "name": "Stats",
-        "value": stats_output
+        "value": final_outputs.stats_output
       },
       {
         "name": "Recent Matches",
-        "value": match_output,
+        "value": final_outputs.recent_matches_output,
         "inline": true
       }
     ]
@@ -120,6 +118,26 @@ exports.run = async (client, message, args) => {
     try{ message.delete(); }
     catch(err){ "Missing Permissions" }
   });
+}
+
+function format_output(overall_stats, recent_data) {
+  const stats_output = "**KDA:**   " +
+    overall_stats.average_KDA.kills + " / " +
+    overall_stats.average_KDA.deaths + " / " +
+    overall_stats.average_KDA.assists + "\n" +
+    "**W/L:**   " + overall_stats.win_percent + "%\n" +
+    "**Games:**   " + overall_stats.num_games;
+
+  var recent_matches_output = "";
+  for(key in recent_data.recent_matches) {
+    const match = recent_data.recent_matches[key];
+    recent_matches_output += match.matchid + " | " + match.champ_emoji_icon + " " + (match.win ? "**W**" : "**L**") + " - " + match.champion_name + ": " + match.KDA.kills + " / " + match.KDA.deaths + " / " + match.KDA.assists + "\n";
+  }
+
+  return {
+    stats_output: stats_output,
+    recent_matches_output: recent_matches_output
+  };
 }
 
 function calculate_average_stats(inhouse_matches, userid) {
@@ -143,17 +161,20 @@ function calculate_average_stats(inhouse_matches, userid) {
     }
   }
 
-  const output = "**KDA:**   " + (total_kills / inhouse_matches.length).toFixed(1) + " / " +
-                (total_deaths / inhouse_matches.length).toFixed(1) + " / " +
-                (total_assists / inhouse_matches.length).toFixed(1) + "\n" +
-                "**W/L:**   " + (wins / (wins + losses) * 100).toFixed(1) + "%\n" +
-                "**Games:**   " + (wins + losses);
-  return output;
+  return {
+    average_KDA: {
+      kills: (total_kills / inhouse_matches.length).toFixed(1),
+      deaths: (total_deaths / inhouse_matches.length).toFixed(1),
+      assists: (total_assists / inhouse_matches.length).toFixed(1)
+    },
+    win_percent: (wins / (wins + losses) * 100).toFixed(1),
+    num_games: wins + losses
+  };
 }
 
 function get_recent_data(champion_hash_table, inhouse_matches, userid, global_inhouse_info, client) {
   var last_champion_name;
-  var match_output = "";
+  var recent_matches = [];
   for(key in inhouse_matches) {
     const player_data = inhouse_matches[key].players.find(a_player => a_player.userid == userid).official_data;
 
@@ -163,17 +184,27 @@ function get_recent_data(champion_hash_table, inhouse_matches, userid, global_in
     const champ_emoji_icon = `${champ_emoji}`;
 
     const champion_name = champion_hash_table[player_data.championId].name;
-    const KDA = player_data.stats.kills + " / " + player_data.stats.deaths + " / " + player_data.stats.assists;
-    const win = "**" + (player_data.stats.win ? "W" : "L  ") + "**";
+    const KDA = {
+      kills: player_data.stats.kills,
+      deaths: player_data.stats.deaths,
+      assists: player_data.stats.assists
+    }
+    const win = player_data.stats.win;
     const matchid = inhouse_matches[key].matchid;
 
-    match_output += matchid + " | " + champ_emoji_icon + " " + win + " - " + champion_name + ": " + KDA + "\n";
+    recent_matches.push({
+      matchid: matchid,
+      win: win,
+      champion_name: champion_name,
+      champ_emoji_icon: champ_emoji_icon,
+      KDA: KDA
+    });
 
     last_champion_name = last_champion_name ? last_champion_name : champion_name;
   }
   return {
-    recent_matches  : match_output,
-    last_champion   : last_champion_name
+    recent_matches: recent_matches,
+    last_champion : last_champion_name
   };
 }
 

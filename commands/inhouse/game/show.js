@@ -9,13 +9,19 @@ exports.run = async (client, message, args) => {
   db = await mongodb.getDb();
   const directoryid = await redirector.getDirectoryId(db, message.member.guild);
 
+  // Check match id
   if(args.length != 1) return message.channel.send("I need a match id!");
   if(isNaN(args[0])) return message.channel.send("Match ids must be numbers!");
 
+  // Check for match existence
   const match_with_id = await db.db(directoryid).collection("inhouse_matches").find({ matchid: args[0] }).toArray();
   if(match_with_id.length == 0) return message.channel.send("The match with id " + args[0] + " doesn't exist!");
   const match = match_with_id[0];
 
+  // Get global info (for champion icons)
+  const global_inhouse_info = await db.db("kami_db").collection("global_info").findOne({ info_type: "league_api_info" });
+
+  // Create new arrays for each stat type
   const StatType = Object.freeze({"name":0, "kda":1, "cs":2, "elo_change":3});
   var team_1 = [];
   var team_2 = [];
@@ -24,21 +30,31 @@ exports.run = async (client, message, args) => {
     team_2[i] = new Array();
   }
 
+  // Get blank space emoji
+  const blank_space_emoji = `${client.emojis.get('400562773387378688')}`;
+
   for(key in match.players) {
     const player = match.players[key];
+
+    const champion_id = player.official_data.championId;
+    // Emoji stuff
+    const champ_emoji_info = global_inhouse_info.champion_icons.find(icon => icon.id == champion_id);
+    const champ_emoji = client.emojis.get(champ_emoji_info.emoji_id);
+    const champ_emoji_icon = `${champ_emoji}`;
+
     // Get their name
-    var name_text;
+    var name_text = champ_emoji_icon + " ";
     if(player.userid === undefined) {
-      name_text = "Unregistered Player";
+      name_text += "Unregistered Player";
     }
     else {
-      name_text = client.users.get(player.userid).username;
+      name_text += client.users.get(player.userid).username;
     }
 
     // Get their stats
-    const kda = player.official_data.stats.kills + " / " + player.official_data.stats.deaths + " / " + player.official_data.stats.assists;
-    const creep_score = player.official_data.stats.totalMinionsKilled;
-    const elo_change = player.userid === undefined ? "\u200b" : player.elo_delta;
+    const kda = player.official_data.stats.kills + " / " + player.official_data.stats.deaths + " / " + player.official_data.stats.assists + blank_space_emoji;
+    const creep_score = player.official_data.stats.totalMinionsKilled + blank_space_emoji;
+    const elo_change = (player.userid === undefined ? "\u200b" : player.elo_delta) + blank_space_emoji;
 
     if(player.official_data.teamId == 100) {
       team_1[StatType.name].push(name_text);

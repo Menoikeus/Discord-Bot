@@ -46,6 +46,7 @@ exports.run = async (client, message, args) => {
     "author": {
       "name": message.guild.name + " Inhouse League",
       "icon_url": "https://i.imgur.com/vfBewGB.png",
+      "url": "http://localhost:3000/directories/" + directoryid
     },
     "thumbnail": {
       "url": message.guild.iconURL,
